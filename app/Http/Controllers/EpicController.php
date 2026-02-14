@@ -1,0 +1,96 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Epic;
+use App\Models\Project;
+use Illuminate\Http\Request;
+
+class EpicController extends Controller
+{
+    public function create(Request $request, Project $project)
+    {
+        $this->authorizeProject($request->user(), $project);
+
+        return view('epics.create', compact('project'));
+    }
+
+    public function store(Request $request, Project $project)
+    {
+        $this->authorizeProject($request->user(), $project);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'milestone_tag' => 'nullable|string|max:255',
+        ]);
+
+        $project->epics()->create($data);
+
+        return redirect()->route('projects.show', $project)->with('status', 'Epic created.');
+    }
+
+    public function show(Request $request, Epic $epic)
+    {
+        $this->authorizeProject($request->user(), $epic->project);
+
+        $epic->load(['tasks', 'project']);
+
+        return view('epics.show', compact('epic'));
+    }
+
+    public function edit(Request $request, Epic $epic)
+    {
+        $this->authorizeProject($request->user(), $epic->project);
+
+        return view('epics.edit', compact('epic'));
+    }
+
+    public function update(Request $request, Epic $epic)
+    {
+        $this->authorizeProject($request->user(), $epic->project);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'milestone_tag' => 'nullable|string|max:255',
+        ]);
+
+        $epic->update($data);
+
+        return redirect()->route('epics.show', $epic)->with('status', 'Epic updated.');
+    }
+
+    public function destroy(Request $request, Epic $epic)
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $project = $epic->project;
+        $epic->delete();
+
+        return redirect()->route('projects.show', $project)->with('status', 'Epic deleted.');
+    }
+
+    public function kanban(Request $request, Epic $epic)
+    {
+        $this->authorizeProject($request->user(), $epic->project);
+
+        $epic->load('project');
+        $tasks = $epic->tasks()->get()->groupBy('status');
+
+        return view('epics.kanban', compact('epic', 'tasks'));
+    }
+
+    private function authorizeProject($user, Project $project): void
+    {
+        if ($user->isAdmin()) {
+            return;
+        }
+
+        if (!$user->projects()->where('projects.id', $project->id)->exists()) {
+            abort(403, 'You are not assigned to this project.');
+        }
+    }
+}
