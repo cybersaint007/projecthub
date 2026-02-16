@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EpicController;
+use App\Http\Controllers\Import\BacklogImportController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectFileController;
@@ -64,6 +65,12 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', AdminUserController::class)->except(['destroy']);
         Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
         Route::post('/users/{user}/sync-projects', [AdminUserController::class, 'syncProjects'])->name('users.sync-projects');
+    });
+
+    // Import routes (admin only)
+    Route::middleware('admin')->prefix('imports')->name('imports.')->group(function () {
+        Route::get('/backlog', [BacklogImportController::class, 'show'])->name('backlog.show');
+        Route::post('/backlog', [BacklogImportController::class, 'store'])->name('backlog.store');
     });
 });
 
