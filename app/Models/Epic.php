@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Epic extends Model
 {
-    protected $fillable = ['project_id', 'title', 'description', 'milestone_tag'];
+    protected $fillable = ['project_id', 'title', 'description', 'milestone_tag', 'owner_id'];
 
     public function project(): BelongsTo
     {

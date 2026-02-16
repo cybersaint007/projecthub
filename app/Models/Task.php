@@ -19,6 +19,7 @@ class Task extends Model
         'context',
         'instructions',
         'acceptance_criteria',
+        'assignee_id',
     ];
 
     protected function casts(): array
