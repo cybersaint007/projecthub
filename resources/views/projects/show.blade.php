@@ -80,6 +80,7 @@
                                     <span class="text-sm text-gray-400">{{ $epic->tasks->count() }} tasks</span>
                                 </div>
                             </div>
+                        </div>
                         @endif
                     @endforeach
                 </div>

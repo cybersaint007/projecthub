@@ -103,15 +103,20 @@
   },
   "epics": [
     {
-      "title": "Portal-only Auth",
-      "description": "Portal is IdP",
+      "title": "Epic One",
+      "description": "Optional description",
       "owner_email": "user@example.com",
       "tasks": [
-        {
-          "title": "Admin create users",
-          "description": "",
-          "assignee_email": "user@example.com"
-        }
+        { "title": "Task 1.1", "description": "", "assignee_email": "user@example.com" },
+        { "title": "Task 1.2", "description": "", "assignee_email": "user@example.com" }
+      ]
+    },
+    {
+      "title": "Epic Two",
+      "description": "Optional",
+      "owner_email": "user@example.com",
+      "tasks": [
+        { "title": "Task 2.1", "description": "", "assignee_email": "user@example.com" }
       ]
     }
   ]
