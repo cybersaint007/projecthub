@@ -121,6 +121,8 @@ The new user's `force_password_reset` is set to `true`. On their first login, th
 - Users **cannot** delete epics or tasks (admin only)
 - Users **can** create/edit epics and tasks within their assigned projects
 - Users **can** upload files and delete **their own** uploads
+- Admins **can** soft-delete and restore projects (with cascade to epics/tasks)
+- Admins **can** import projects via JSON (CLI or Web UI)
 
 ---
 
@@ -170,21 +172,118 @@ Both prompts have a **Copy to Clipboard** button.
 
 ---
 
+## JSON Backlog Import
+
+ProjectHub supports importing projects, epics, and tasks from JSON files via both CLI and Web UI.
+
+### CLI Import
+
+```bash
+# Preview mode (dry-run)
+php artisan projecthub:import storage/app/import-samples/backlog.minimal.sample.json --dry-run
+
+# Actual import
+php artisan projecthub:import storage/app/import-samples/backlog.minimal.sample.json
+```
+
+### Web UI Import
+
+1. Login as Admin → navigate to **Import** in the top nav
+2. Upload a JSON file (max 2MB)
+3. Optionally check "Dry run" for preview
+4. Click **Import**
+
+**Features:**
+- Both CLI and Web UI use the same validation logic
+- Project code must be unique (even if project is soft-deleted)
+- All email addresses must exist in users table
+- Supports dry-run mode for preview
+- Uses database transactions (all-or-nothing)
+
+**JSON Format:**
+```json
+{
+  "project": {
+    "code": "PH-CORE",
+    "name": "ProjectHub Core Build",
+    "description": "Core backlog import",
+    "owner_email": "user@example.com"
+  },
+  "epics": [
+    {
+      "title": "Epic Title",
+      "description": "Epic description",
+      "owner_email": "user@example.com",
+      "tasks": [
+        {
+          "title": "Task Title",
+          "description": "Task description",
+          "assignee_email": "user@example.com"
+        }
+      ]
+    }
+  ]
+}
+```
+
+See `docs/IMPORT_BACKLOG_CLI.md` and `docs/IMPORT_BACKLOG_UI.md` for detailed documentation.
+
+---
+
+## Project Soft Delete & Restore
+
+Projects can be soft-deleted (not permanently removed) and restored later.
+
+### Features
+
+- **Soft Delete**: Projects, epics, and tasks use soft deletes (marked with `deleted_at` timestamp)
+- **Cascade Delete**: Deleting a project soft-deletes all related epics and tasks
+- **Cascade Restore**: Restoring a project restores all related epics and tasks
+- **Code Uniqueness**: Project codes remain unique even after soft deletion (cannot be reused)
+- **Member Detachment**: Project members are detached on delete (not reattached on restore)
+
+### Usage
+
+**Delete Project:**
+1. Admin → Project detail page → Click **Delete Project**
+2. Confirms deletion → Project and related epics/tasks are soft-deleted
+
+**View Deleted Projects:**
+1. Admin → Projects list → Toggle "Show deleted projects" checkbox
+2. Deleted projects appear in gray with "Deleted" badge
+
+**Restore Project:**
+1. Admin → Projects list (with deleted projects visible) → Click **Restore** button
+2. Or → Deleted project detail page → Click **Restore Project**
+3. Project and related epics/tasks are restored
+
+**Important:**
+- Only admins can delete/restore projects
+- Non-admins cannot see deleted projects
+- Project codes cannot be reused even after deletion
+- Project member assignments are not restored automatically
+
+See `docs/PROJECT_DELETE_RESTORE.md` for detailed documentation.
+
+---
+
 ## Key Routes
 
 | Route | Description |
 |-------|-------------|
 | `/login` | Login page |
 | `/dashboard` | Dashboard with project list |
-| `/projects` | Projects list |
+| `/projects` | Projects list (with soft-deleted toggle for admins) |
 | `/projects/{id}` | Project detail (epics + users) |
 | `/projects/{id}/files` | Project files (upload/download/delete) |
+| `/projects/{id}/restore` | Admin: restore soft-deleted project (POST) |
 | `/epics/{id}` | Epic detail (task list) |
 | `/epics/{id}/kanban` | Kanban board |
 | `/tasks/{id}` | Task detail + AI Prompt Generator + Artifacts + Reviews |
 | `/password/change` | Change password |
 | `/admin/users` | Admin: manage users |
 | `/admin/users/{id}` | Admin: user detail + project assignments |
+| `/imports/backlog` | Admin: JSON backlog import (upload form) |
 
 ---
 
@@ -197,6 +296,11 @@ Project (1) ──→ (N) Epic (1) ──→ (N) Task (1) ──→ (N) TaskArti
 Project (M) ←──→ (N) User        (project_user pivot)
 Project (1) ──→ (N) ProjectFile
 ```
+
+**Soft Deletes:**
+- `Project`, `Epic`, and `Task` models use soft deletes (`deleted_at` column)
+- Soft-deleted records are hidden from default queries but can be restored
+- Project codes remain unique even after soft deletion
 
 ### Task Statuses
 `Backlog` → `Ready` → `InProgress` → `Review` → `Done`
@@ -222,13 +326,20 @@ When changes are requested, it goes back to `InProgress`.
 
 ```
 app/
+├── Console/
+│   └── Commands/
+│       └── ProjectHubImportBacklog.php  # CLI JSON import command
+├── Exceptions/
+│   └── BacklogImportException.php       # Import error exception
 ├── Http/
 │   ├── Controllers/
 │   │   ├── Admin/UserController.php     # Admin user management
 │   │   ├── DashboardController.php
 │   │   ├── EpicController.php
+│   │   ├── Import/
+│   │   │   └── BacklogImportController.php  # Web UI JSON import
 │   │   ├── PasswordChangeController.php
-│   │   ├── ProjectController.php
+│   │   ├── ProjectController.php       # Includes soft delete/restore
 │   │   ├── ProjectFileController.php
 │   │   ├── TaskArtifactController.php
 │   │   ├── TaskController.php
@@ -237,23 +348,36 @@ app/
 │       ├── AdminMiddleware.php          # Restricts /admin/* to admins
 │       └── ForcePasswordReset.php       # Redirects to /password/change
 ├── Models/
-│   ├── Epic.php
-│   ├── Project.php
+│   ├── Epic.php                         # Uses SoftDeletes
+│   ├── Project.php                      # Uses SoftDeletes
 │   ├── ProjectFile.php
-│   ├── Task.php
+│   ├── Task.php                        # Uses SoftDeletes
 │   ├── TaskArtifact.php
 │   ├── TaskReview.php
 │   └── User.php
+├── Services/
+│   ├── BacklogImportService.php        # Shared import logic
+│   └── ImportResult.php                # Import result data class
 config/
 ├── database.php                         # search_path = env('DB_SCHEMA')
 └── filesystems.php                      # projecthub_private disk
 database/
-├── migrations/                          # All domain tables
+├── migrations/                          # All domain tables + soft deletes
 └── seeders/DatabaseSeeder.php           # Admin + demo data
+docs/
+├── IMPORT_BACKLOG_CLI.md               # CLI import documentation
+├── IMPORT_BACKLOG_UI.md                 # Web UI import documentation
+├── IMPORT_MINIMAL_BACKLOG.md            # Original import docs
+└── PROJECT_DELETE_RESTORE.md           # Soft delete/restore docs
 resources/views/
 ├── admin/users/                         # Admin user management views
 ├── auth/change-password.blade.php       # Force password change
 ├── epics/                               # Epic CRUD + kanban
-├── projects/                            # Project CRUD + files
+├── imports/
+│   └── backlog.blade.php               # JSON import form
+├── projects/                            # Project CRUD + files + delete/restore
 └── tasks/                               # Task CRUD + AI prompts
+storage/app/
+└── import-samples/
+    └── backlog.minimal.sample.json     # Sample import JSON
 ```

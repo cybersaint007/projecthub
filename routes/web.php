@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
 
     // Projects
     Route::resource('projects', ProjectController::class);
+    Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
 
     // Epics
     Route::get('/projects/{project}/epics/create', [EpicController::class, 'create'])->name('epics.create');

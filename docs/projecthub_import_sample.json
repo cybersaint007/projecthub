@@ -1,6 +1,6 @@
 {
   "project": {
-    "code": "PH-BUILD-001",
+    "code": "PH-BUILD-002",
     "name": "ProjectHub System Build",
     "description": "Initial structured backlog for ProjectHub core development",
     "owner_email": "james.lee@fincosoft.com"

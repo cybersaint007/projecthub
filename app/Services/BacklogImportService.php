@@ -141,9 +141,9 @@ class BacklogImportService
         $messages = [];
 
         return DB::transaction(function () use ($projectData, $epicsData, $startTime, &$messages) {
-            // Check project code uniqueness
+            // Check project code uniqueness (including soft-deleted projects)
             if (isset($projectData['code'])) {
-                $existingProject = Project::where('code', $projectData['code'])->first();
+                $existingProject = Project::withTrashed()->where('code', $projectData['code'])->first();
                 if ($existingProject) {
                     throw new BacklogImportException("Project with code '{$projectData['code']}' already exists. Import stopped.");
                 }
