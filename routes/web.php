@@ -9,6 +9,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectFileController;
 use App\Http\Controllers\TaskArtifactController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskPromptController;
 use App\Http\Controllers\TaskReviewController;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +52,14 @@ Route::middleware('auth')->group(function () {
     // Task Artifacts
     Route::post('/tasks/{task}/artifacts', [TaskArtifactController::class, 'store'])->name('artifacts.store');
     Route::delete('/artifacts/{artifact}', [TaskArtifactController::class, 'destroy'])->name('artifacts.destroy');
+
+    // Task Prompts (AI Prompts)
+    Route::post('/tasks/{task}/prompts', [TaskPromptController::class, 'store'])->name('prompts.store');
+    Route::get('/tasks/{task}/prompts/{task_prompt}', [TaskPromptController::class, 'show'])->name('prompts.show')->scopeBindings();
+    Route::get('/tasks/{task}/prompts/{task_prompt}/edit', [TaskPromptController::class, 'edit'])->name('prompts.edit')->scopeBindings();
+    Route::put('/tasks/{task}/prompts/{task_prompt}', [TaskPromptController::class, 'update'])->name('prompts.update')->scopeBindings();
+    Route::post('/tasks/{task}/prompts/{task_prompt}/duplicate', [TaskPromptController::class, 'duplicate'])->name('prompts.duplicate')->scopeBindings();
+    Route::delete('/tasks/{task}/prompts/{task_prompt}', [TaskPromptController::class, 'destroy'])->name('prompts.destroy')->scopeBindings();
 
     // Task Reviews
     Route::post('/tasks/{task}/reviews', [TaskReviewController::class, 'store'])->name('reviews.store');

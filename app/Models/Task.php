@@ -50,4 +50,9 @@ class Task extends Model
     {
         return $this->hasMany(TaskReview::class);
     }
+
+    public function taskPrompts(): HasMany
+    {
+        return $this->hasMany(TaskPrompt::class);
+    }
 }
