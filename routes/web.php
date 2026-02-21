@@ -29,6 +29,11 @@ Route::middleware('auth')->group(function () {
 
     // Projects
     Route::resource('projects', ProjectController::class);
+    Route::get('/projects/{project}/access', [ProjectController::class, 'access'])->name('projects.access');
+    Route::post('/projects/{project}/access', [ProjectController::class, 'addAccessUser'])->name('projects.access.add');
+    Route::put('/projects/{project}/access/{user}', [ProjectController::class, 'updateAccessUser'])->name('projects.access.update');
+    Route::delete('/projects/{project}/access/{user}', [ProjectController::class, 'removeAccessUser'])->name('projects.access.remove');
+    Route::put('/projects/{project}/owner', [ProjectController::class, 'updateOwner'])->name('projects.owner.update');
     Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
 
     // Epics

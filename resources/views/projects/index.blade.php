@@ -41,11 +41,14 @@
                             data-trashed="{{ $project->trashed() ? '1' : '0' }}"
                         >
                             <td class="px-6 py-4 whitespace-nowrap font-medium">
-                                <div class="flex items-center gap-2">
-                                    <a href="{{ route('projects.show', $project) }}" class="text-indigo-600 hover:underline {{ $project->trashed() ? 'line-through' : '' }}">{{ $project->name }}</a>
-                                    @if($project->trashed())
-                                        <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">Deleted</span>
-                                    @endif
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ route('projects.show', $project) }}" class="text-indigo-600 hover:underline {{ $project->trashed() ? 'line-through' : '' }}">{{ $project->name }}</a>
+                                        @if($project->trashed())
+                                            <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">Deleted</span>
+                                        @endif
+                                    </div>
+                                    @include('projects.partials.access-badges', ['project' => $project, 'user' => auth()->user()])
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ Str::limit($project->description, 60) }}</td>

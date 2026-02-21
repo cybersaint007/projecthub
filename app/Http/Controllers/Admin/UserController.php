@@ -49,10 +49,11 @@ class UserController extends Controller
 
     public function show(Request $request, User $user)
     {
-        $projects = Project::all();
-        $assignedProjectIds = $user->projects()->pluck('projects.id')->toArray();
+        $projects = Project::orderBy('name')->get();
+        $user->load('projects');
+        $assignedProjects = $user->projects->keyBy('id'); // project_id => project (with pivot.role)
 
-        return view('admin.users.show', compact('user', 'projects', 'assignedProjectIds'));
+        return view('admin.users.show', compact('user', 'projects', 'assignedProjects'));
     }
 
     public function edit(User $user)
@@ -97,9 +98,15 @@ class UserController extends Controller
         $data = $request->validate([
             'projects' => 'nullable|array',
             'projects.*' => 'exists:projects,id',
+            'roles' => 'nullable|array',
+            'roles.*' => 'in:editor,viewer',
         ]);
 
-        $user->projects()->sync($data['projects'] ?? []);
+        $sync = [];
+        foreach ($data['projects'] ?? [] as $projectId) {
+            $sync[$projectId] = ['role' => $data['roles'][$projectId] ?? 'viewer'];
+        }
+        $user->projects()->sync($sync);
 
         return redirect()->route('admin.users.show', $user)->with('status', 'Project assignments updated.');
     }

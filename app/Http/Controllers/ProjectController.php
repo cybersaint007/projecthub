@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -12,11 +13,18 @@ class ProjectController extends Controller
         $user = $request->user();
 
         if ($user->isAdmin()) {
-            // For admins, load all projects (including trashed) with counts
-            $projects = Project::withTrashed()->withCount(['epics', 'users'])->orderBy('deleted_at', 'asc')->orderBy('name', 'asc')->get();
+            $projects = Project::withTrashed()
+                ->with(['owner', 'accessUsers'])
+                ->withCount(['epics', 'accessUsers'])
+                ->orderBy('deleted_at', 'asc')
+                ->orderBy('name', 'asc')
+                ->get();
         } else {
-            // For non-admins, only show active projects they're assigned to
-            $projects = $user->projects()->withCount('epics')->get();
+            $projects = Project::accessibleTo($user)
+                ->with(['owner', 'accessUsers'])
+                ->withCount('epics')
+                ->latest()
+                ->get();
         }
 
         return view('projects.index', compact('projects'));
@@ -58,12 +66,87 @@ class ProjectController extends Controller
                 $query->withTrashed();
             }, 'epics.tasks' => function ($query) {
                 $query->withTrashed();
-            }, 'users']);
+            }, 'owner', 'accessUsers']);
         } else {
-            $project->load(['epics.tasks', 'users']);
+            $project->load(['epics.tasks', 'owner', 'accessUsers']);
         }
 
         return view('projects.show', compact('project'));
+    }
+
+    public function access(Request $request, Project $project)
+    {
+        $user = $request->user();
+        $this->authorizeProject($user, $project);
+        $role = $project->roleFor($user);
+        if ($role !== Project::ROLE_OWNER && !$user->isAdmin()) {
+            abort(403, 'Only the project owner can manage access.');
+        }
+        $project->load(['owner', 'accessUsers']);
+        $userIdsOnProject = $project->accessUsers->pluck('id')->when($project->owner_id, fn ($ids) => $ids->push($project->owner_id))->unique()->values();
+        $availableUsers = User::orderBy('name')->get()->filter(fn ($u) => !$userIdsOnProject->contains($u->id))->values();
+        $allUsers = User::orderBy('name')->get();
+        return view('projects.access', compact('project', 'availableUsers', 'allUsers'));
+    }
+
+    public function addAccessUser(Request $request, Project $project)
+    {
+        $user = $request->user();
+        $this->authorizeProject($user, $project);
+        if ($project->roleFor($user) !== Project::ROLE_OWNER && !$user->isAdmin()) {
+            abort(403, 'Only the project owner can manage access.');
+        }
+        $data = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'role' => 'required|in:editor,viewer',
+        ]);
+        if ($project->owner_id && (int) $project->owner_id === (int) $data['user_id']) {
+            return redirect()->route('projects.access', $project)->with('error', 'That user is already the project owner.');
+        }
+        $project->accessUsers()->syncWithoutDetaching([$data['user_id'] => ['role' => $data['role']]]);
+        return redirect()->route('projects.access', $project)->with('status', 'User added to project.');
+    }
+
+    public function updateAccessUser(Request $request, Project $project, User $user)
+    {
+        $authUser = $request->user();
+        $this->authorizeProject($authUser, $project);
+        if ($project->roleFor($authUser) !== Project::ROLE_OWNER && !$authUser->isAdmin()) {
+            abort(403, 'Only the project owner can manage access.');
+        }
+        if ($project->owner_id && (int) $project->owner_id === (int) $user->id) {
+            return redirect()->route('projects.access', $project)->with('error', 'Change the project owner first to change that user\'s role.');
+        }
+        $data = $request->validate(['role' => 'required|in:editor,viewer']);
+        $project->accessUsers()->updateExistingPivot($user->id, ['role' => $data['role']]);
+        return redirect()->route('projects.access', $project)->with('status', 'Role updated.');
+    }
+
+    public function removeAccessUser(Request $request, Project $project, User $user)
+    {
+        $authUser = $request->user();
+        $this->authorizeProject($authUser, $project);
+        if ($project->roleFor($authUser) !== Project::ROLE_OWNER && !$authUser->isAdmin()) {
+            abort(403, 'Only the project owner can manage access.');
+        }
+        if ($project->owner_id && (int) $project->owner_id === (int) $user->id) {
+            return redirect()->route('projects.access', $project)->with('error', 'Set a different project owner before removing the current owner.');
+        }
+        $project->accessUsers()->detach($user->id);
+        return redirect()->route('projects.access', $project)->with('status', 'User removed from project.');
+    }
+
+    public function updateOwner(Request $request, Project $project)
+    {
+        $authUser = $request->user();
+        $this->authorizeProject($authUser, $project);
+        if ($project->roleFor($authUser) !== Project::ROLE_OWNER && !$authUser->isAdmin()) {
+            abort(403, 'Only the project owner can manage access.');
+        }
+        $data = $request->validate(['owner_id' => 'required|exists:users,id']);
+        $project->update(['owner_id' => $data['owner_id']]);
+        $project->accessUsers()->syncWithoutDetaching([$data['owner_id'] => ['role' => Project::ROLE_VIEWER]]);
+        return redirect()->route('projects.access', $project)->with('status', 'Project owner updated.');
     }
 
     public function edit(Request $request, Project $project)
@@ -146,13 +229,16 @@ class ProjectController extends Controller
             return;
         }
 
-        // Non-admins cannot view deleted projects
         if ($project->trashed()) {
             abort(403, 'You cannot view deleted projects.');
         }
 
-        if (!$user->projects()->where('projects.id', $project->id)->exists()) {
-            abort(403, 'You are not assigned to this project.');
+        $hasAccess = $project->visibility === Project::VISIBILITY_PUBLIC
+            || $project->owner_id === (int) $user->id
+            || $project->accessUsers()->where('users.id', $user->id)->exists();
+
+        if (!$hasAccess) {
+            abort(403, 'You do not have access to this project.');
         }
     }
 }

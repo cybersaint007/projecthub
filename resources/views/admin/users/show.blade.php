@@ -20,24 +20,33 @@
     </x-slot>
 
     <div class="bg-white shadow-sm sm:rounded-lg p-6">
-        <h3 class="text-lg font-medium mb-4">Project Assignments</h3>
+        <h3 class="text-lg font-medium mb-4">Project assignments</h3>
+        <p class="text-sm text-gray-500 mb-4">Assign this user to projects and set their role (Editor can edit; Viewer is read-only). You can also manage access from each project’s <strong>Manage access</strong> page.</p>
 
         <form method="POST" action="{{ route('admin.users.sync-projects', $user) }}">
             @csrf
             @if($projects->isEmpty())
                 <p class="text-gray-500 mb-4">No projects exist yet. Create a project first.</p>
             @else
-                <div class="space-y-2 mb-4">
+                <div class="space-y-3 mb-4">
                     @foreach($projects as $project)
-                        <label class="flex items-center">
+                        @php
+                            $assigned = $assignedProjects->has($project->id);
+                            $currentRole = $assigned && $assignedProjects[$project->id]->pivot ? $assignedProjects[$project->id]->pivot->role : 'viewer';
+                        @endphp
+                        <label class="flex items-center gap-3 flex-wrap">
                             <input type="checkbox" name="projects[]" value="{{ $project->id }}"
                                 class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                                {{ in_array($project->id, $assignedProjectIds) ? 'checked' : '' }}>
-                            <span class="ms-2 text-sm text-gray-700">{{ $project->name }}</span>
+                                {{ $assigned ? 'checked' : '' }}>
+                            <span class="text-sm text-gray-700 min-w-[120px]">{{ $project->name }}</span>
+                            <select name="roles[{{ $project->id }}]" class="text-sm border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="viewer" {{ $currentRole === 'viewer' ? 'selected' : '' }}>Viewer</option>
+                                <option value="editor" {{ $currentRole === 'editor' ? 'selected' : '' }}>Editor</option>
+                            </select>
                         </label>
                     @endforeach
                 </div>
-                <x-primary-button>Update Assignments</x-primary-button>
+                <x-primary-button>Update assignments</x-primary-button>
             @endif
         </form>
     </div>
