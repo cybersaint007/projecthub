@@ -181,10 +181,21 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --no-interaction
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Build frontend assets
+        run: npm ci && npm run build
+
       - name: Prepare Laravel
         run: |
           cp .env.example .env
           php artisan key:generate
+          touch database/database.sqlite
+          php artisan migrate --force
 
       - name: Run tests
         run: vendor/bin/phpunit --no-coverage
@@ -209,7 +220,67 @@ jobs:
 |--------|-------|
 | `DEPLOY_HOST` | `fincosg1.fincosoft.com` |
 | `DEPLOY_USER` | `dockeradmin` |
-| `DEPLOY_SSH_KEY` | Private key for dockeradmin SSH access |
+| `DEPLOY_SSH_KEY` | Contents of the deploy private key (e.g., `~/.ssh/id_ed25519`) |
+
+### Setting Up GitHub Secrets via CLI
+
+Prerequisites: install `gh` CLI and authenticate.
+
+```bash
+# Install gh (no sudo required)
+curl -sL "https://github.com/cli/cli/releases/latest/download/gh_<version>_linux_amd64.tar.gz" -o /tmp/gh.tar.gz
+mkdir -p ~/bin && tar xzf /tmp/gh.tar.gz -C /tmp && cp /tmp/gh_*/bin/gh ~/bin/
+export PATH="$HOME/bin:$PATH"
+
+# Authenticate (generate token at https://github.com/settings/tokens with repo, read:org, workflow scopes)
+echo "<your-token>" | ~/bin/gh auth login --with-token
+```
+
+Then set the three secrets:
+
+```bash
+REPO="fincosoft/<project>"
+
+~/bin/gh secret set DEPLOY_HOST --repo "$REPO" --body "fincosg1.fincosoft.com"
+~/bin/gh secret set DEPLOY_USER --repo "$REPO" --body "dockeradmin"
+~/bin/gh secret set DEPLOY_SSH_KEY --repo "$REPO" < ~/.ssh/id_ed25519
+```
+
+### SSH Key Setup
+
+The deploy key must be authorized to SSH into the production server. If using an existing key pair on the server:
+
+```bash
+# Verify the public key is in authorized_keys
+grep -q "$(cat ~/.ssh/id_ed25519.pub)" ~/.ssh/authorized_keys || \
+  cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+
+# Test SSH access
+ssh -o BatchMode=yes -i ~/.ssh/id_ed25519 dockeradmin@fincosg1.fincosoft.com "echo OK"
+```
+
+If creating a new dedicated deploy key:
+
+```bash
+# Generate a new key pair (no passphrase)
+ssh-keygen -t ed25519 -f ~/.ssh/deploy_key -N "" -C "github-actions-deploy"
+
+# Authorize it on the server
+cat ~/.ssh/deploy_key.pub >> ~/.ssh/authorized_keys
+
+# Use the private key as the DEPLOY_SSH_KEY secret
+~/bin/gh secret set DEPLOY_SSH_KEY --repo "$REPO" < ~/.ssh/deploy_key
+```
+
+### Verifying the Secrets
+
+```bash
+# List configured secrets
+~/bin/gh secret list --repo "$REPO"
+
+# Trigger a workflow re-run to test
+~/bin/gh run rerun <run-id> --repo "$REPO" --failed
+```
 
 ## .env.example Template (for CI)
 
@@ -221,14 +292,14 @@ APP_DEBUG=true
 APP_URL=http://localhost
 
 DB_CONNECTION=sqlite
-DB_DATABASE=:memory:
+DB_DATABASE=database/database.sqlite
 
-SESSION_DRIVER=array
+SESSION_DRIVER=file
 CACHE_DRIVER=array
 QUEUE_CONNECTION=sync
 ```
 
-This file is committed to git and used by CI. It uses SQLite in-memory so CI tests don't need a real PostgreSQL database.
+This file is committed to git and used by CI. It uses a file-based SQLite database so CI can run migrations and tests without a real PostgreSQL instance. The CI workflow creates the SQLite file with `touch database/database.sqlite` before running `php artisan migrate --force`.
 
 ## docker-compose.yml Pattern
 
@@ -299,9 +370,11 @@ volumes:
 1. Create project directory: `/home/dockeradmin/<project>/`
 2. Set up `Dockerfile` and `docker-compose.yml`
 3. Create `.env` on server with production credentials (never commit)
-4. Create `.env.example` in git for CI testing
+4. Create `.env.example` in git for CI testing (SQLite + file session)
 5. Copy and customize `deploy.sh` and `auto-deploy-cron.sh`
 6. Add crontab entry: `*/5 * * * * /home/dockeradmin/<project>/auto-deploy-cron.sh >> /home/dockeradmin/cron-deploy.log 2>&1`
-7. Create `.github/workflows/ci.yml`
-8. Configure GitHub Secrets: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`
-9. Test: push a commit and verify the full cycle
+7. Create `.github/workflows/ci.yml` (include Node.js build step if using Vite)
+8. Ensure deploy SSH key is in `~/.ssh/authorized_keys` on the server
+9. Configure GitHub Secrets via `gh secret set` (see "Setting Up GitHub Secrets via CLI" above)
+10. Ensure tests match actual routes — remove scaffolding tests for routes that don't exist
+11. Test: push a commit, verify CI passes, verify deploy job SSHes in and runs `deploy.sh`
