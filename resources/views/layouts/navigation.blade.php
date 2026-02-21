@@ -19,6 +19,9 @@
                         <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                             Users
                         </x-nav-link>
+                        <x-nav-link :href="route('imports.backlog.show')" :active="request()->routeIs('imports.*')">
+                            Import
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -70,6 +73,7 @@
             <x-responsive-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')">Projects</x-responsive-nav-link>
             @if(Auth::user()->isAdmin())
                 <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">Users</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('imports.backlog.show')" :active="request()->routeIs('imports.*')">Import</x-responsive-nav-link>
             @endif
         </div>
         <div class="pt-4 pb-1 border-t border-gray-200">

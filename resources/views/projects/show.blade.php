@@ -2,14 +2,35 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $project->name }}</h2>
+                <div class="flex items-center gap-2">
+                    <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $project->name }}</h2>
+                    @if($project->trashed())
+                        <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">Deleted</span>
+                    @endif
+                </div>
                 @if($project->description)
                     <p class="text-sm text-gray-500 mt-1">{{ $project->description }}</p>
                 @endif
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('project-files.index', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">Files</a>
-                <a href="{{ route('epics.create', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">New Epic</a>
+                @if($project->trashed())
+                    @if(Auth::user()->isAdmin())
+                        <form method="POST" action="{{ route('projects.restore', $project) }}" class="inline">
+                            @csrf
+                            <button type="submit" class="px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700" onclick="return confirm('Are you sure you want to restore this project? This will also restore all related epics and tasks.')">Restore Project</button>
+                        </form>
+                    @endif
+                @else
+                    <a href="{{ route('project-files.index', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">Files</a>
+                    <a href="{{ route('epics.create', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">New Epic</a>
+                    @if(Auth::user()->isAdmin())
+                        <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700" onclick="return confirm('Are you sure you want to delete this project? This will also delete all related epics and tasks. This action can be undone by restoring the project.')">Delete Project</button>
+                        </form>
+                    @endif
+                @endif
             </div>
         </div>
     </x-slot>
@@ -33,6 +54,16 @@
             @else
                 <div class="space-y-3">
                     @foreach($project->epics as $epic)
+                        @if($epic->trashed())
+                            <div class="border rounded-lg p-4 bg-gray-50 opacity-60">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-medium text-gray-400 line-through">{{ $epic->title }}</span>
+                                        <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">Deleted</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
                         <div class="border rounded-lg p-4 hover:bg-gray-50">
                             <div class="flex justify-between items-start">
                                 <div>
@@ -50,6 +81,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     @endforeach
                 </div>
             @endif

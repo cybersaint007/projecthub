@@ -104,7 +104,102 @@
             @endif
         </div>
 
-        {{-- AI Prompt Generator --}}
+        {{-- AI Prompts (saved prompts) --}}
+        <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="{}">
+            <h3 class="text-lg font-semibold mb-4">AI Prompts</h3>
+            <p class="text-sm text-gray-500 mb-4">Saved prompts per agent and version. Add, edit, duplicate or delete.</p>
+
+            <button type="button" @click="$dispatch('open-modal', 'add-prompt')" class="mb-4 px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">Add Prompt</button>
+
+            @if($task->taskPrompts->isEmpty())
+                <p class="text-gray-500 text-sm">No prompts yet. Add one above or use the generator below.</p>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead>
+                            <tr>
+                                <th class="text-left py-2 font-medium text-gray-500">Agent</th>
+                                <th class="text-left py-2 font-medium text-gray-500">Format</th>
+                                <th class="text-left py-2 font-medium text-gray-500">Title</th>
+                                <th class="text-left py-2 font-medium text-gray-500">Version</th>
+                                <th class="text-left py-2 font-medium text-gray-500">Updated At</th>
+                                <th class="text-left py-2 font-medium text-gray-500">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($task->taskPrompts->sortByDesc('updated_at') as $p)
+                                <tr>
+                                    <td class="py-2">{{ $p->agent_type }}</td>
+                                    <td class="py-2">{{ $p->format_type }}</td>
+                                    <td class="py-2">{{ $p->title ?: '—' }}</td>
+                                    <td class="py-2">{{ $p->version }}</td>
+                                    <td class="py-2">{{ $p->updated_at->format('Y-m-d H:i') }}</td>
+                                    <td class="py-2 flex flex-wrap gap-1">
+                                        <a href="{{ route('prompts.show', [$task, $p]) }}" class="text-indigo-600 hover:underline">View</a>
+                                        <a href="{{ route('prompts.edit', [$task, $p]) }}" class="text-indigo-600 hover:underline">Edit</a>
+                                        <form method="POST" action="{{ route('prompts.duplicate', [$task, $p]) }}" class="inline">
+                                            @csrf
+                                            <button type="submit" class="text-indigo-600 hover:underline">Duplicate</button>
+                                        </form>
+                                        <form method="POST" action="{{ route('prompts.destroy', [$task, $p]) }}" class="inline" onsubmit="return confirm('Delete this prompt?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:underline">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+
+        @php $addPromptErrors = $errors->has('agent_type') || $errors->has('format_type') || $errors->has('title') || $errors->has('content'); @endphp
+        <x-modal name="add-prompt" :show="$addPromptErrors" maxWidth="2xl">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold mb-4">Add Prompt</h3>
+                <form method="POST" action="{{ route('prompts.store', $task) }}" id="add-prompt-form">
+                    @csrf
+                    <div class="space-y-4">
+                        <div>
+                            <x-input-label for="add_agent_type" value="Agent" />
+                            <select id="add_agent_type" name="agent_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                @foreach(config('task_prompts.agent_types', \App\Models\TaskPrompt::AGENT_TYPES) as $a)
+                                    <option value="{{ $a }}" {{ old('agent_type') === $a ? 'selected' : '' }}>{{ $a }}</option>
+                                @endforeach
+                            </select>
+                            <x-input-error :messages="$errors->get('agent_type')" class="mt-2" />
+                        </div>
+                        <div>
+                            <x-input-label for="add_format_type" value="Format" />
+                            <select id="add_format_type" name="format_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                @foreach(config('task_prompts.format_types', \App\Models\TaskPrompt::FORMAT_TYPES) as $f)
+                                    <option value="{{ $f }}" {{ old('format_type', 'structured') === $f ? 'selected' : '' }}>{{ $f }}</option>
+                                @endforeach
+                            </select>
+                            <x-input-error :messages="$errors->get('format_type')" class="mt-2" />
+                        </div>
+                        <div>
+                            <x-input-label for="add_title" value="Title (optional)" />
+                            <x-text-input id="add_title" name="title" type="text" class="block w-full" :value="old('title')" />
+                            <x-input-error :messages="$errors->get('title')" class="mt-2" />
+                        </div>
+                        <div>
+                            <x-input-label for="add_content" value="Content" />
+                            <textarea id="add_content" name="content" rows="12" class="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required placeholder="Paste or type your prompt...">{{ old('content') }}</textarea>
+                            <x-input-error :messages="$errors->get('content')" class="mt-2" />
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <x-primary-button>Add Prompt</x-primary-button>
+                        <button type="button" @click="$dispatch('close-modal', 'add-prompt')" class="px-4 py-2 border rounded hover:bg-gray-50">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </x-modal>
+
+        {{-- AI Prompt Generator (legacy quick preview) --}}
         <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="{ tab: 'claude' }">
             <h3 class="text-lg font-semibold mb-4">AI Prompt Generator</h3>
 

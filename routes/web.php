@@ -3,11 +3,13 @@
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EpicController;
+use App\Http\Controllers\Import\BacklogImportController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectFileController;
 use App\Http\Controllers\TaskArtifactController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskPromptController;
 use App\Http\Controllers\TaskReviewController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +29,7 @@ Route::middleware('auth')->group(function () {
 
     // Projects
     Route::resource('projects', ProjectController::class);
+    Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
 
     // Epics
     Route::get('/projects/{project}/epics/create', [EpicController::class, 'create'])->name('epics.create');
@@ -50,6 +53,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/tasks/{task}/artifacts', [TaskArtifactController::class, 'store'])->name('artifacts.store');
     Route::delete('/artifacts/{artifact}', [TaskArtifactController::class, 'destroy'])->name('artifacts.destroy');
 
+    // Task Prompts (AI Prompts)
+    Route::post('/tasks/{task}/prompts', [TaskPromptController::class, 'store'])->name('prompts.store');
+    Route::get('/tasks/{task}/prompts/{task_prompt}', [TaskPromptController::class, 'show'])->name('prompts.show')->scopeBindings();
+    Route::get('/tasks/{task}/prompts/{task_prompt}/edit', [TaskPromptController::class, 'edit'])->name('prompts.edit')->scopeBindings();
+    Route::put('/tasks/{task}/prompts/{task_prompt}', [TaskPromptController::class, 'update'])->name('prompts.update')->scopeBindings();
+    Route::post('/tasks/{task}/prompts/{task_prompt}/duplicate', [TaskPromptController::class, 'duplicate'])->name('prompts.duplicate')->scopeBindings();
+    Route::delete('/tasks/{task}/prompts/{task_prompt}', [TaskPromptController::class, 'destroy'])->name('prompts.destroy')->scopeBindings();
+
     // Task Reviews
     Route::post('/tasks/{task}/reviews', [TaskReviewController::class, 'store'])->name('reviews.store');
 
@@ -64,6 +75,12 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', AdminUserController::class)->except(['destroy']);
         Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
         Route::post('/users/{user}/sync-projects', [AdminUserController::class, 'syncProjects'])->name('users.sync-projects');
+    });
+
+    // Import routes (admin only)
+    Route::middleware('admin')->prefix('imports')->name('imports.')->group(function () {
+        Route::get('/backlog', [BacklogImportController::class, 'show'])->name('backlog.show');
+        Route::post('/backlog', [BacklogImportController::class, 'store'])->name('backlog.store');
     });
 });
 

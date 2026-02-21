@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'epic_id',
         'title',
@@ -19,6 +22,7 @@ class Task extends Model
         'context',
         'instructions',
         'acceptance_criteria',
+        'assignee_id',
     ];
 
     protected function casts(): array
@@ -45,5 +49,10 @@ class Task extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(TaskReview::class);
+    }
+
+    public function taskPrompts(): HasMany
+    {
+        return $this->hasMany(TaskPrompt::class);
     }
 }

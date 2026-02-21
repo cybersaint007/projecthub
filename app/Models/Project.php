@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
 {
-    protected $fillable = ['name', 'description'];
+    use SoftDeletes;
+
+    protected $fillable = ['name', 'description', 'code', 'owner_id'];
 
     public function users(): BelongsToMany
     {

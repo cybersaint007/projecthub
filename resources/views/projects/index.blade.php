@@ -3,6 +3,19 @@
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Projects</h2>
             @if(Auth::user()->isAdmin())
+                <div class="flex items-center gap-4">
+                    <label class="flex items-center cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            id="showTrashedToggle"
+                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            checked
+                        >
+                        <span class="ml-2 text-sm text-gray-700">Show deleted projects</span>
+                    </label>
+                    <a href="{{ route('projects.create') }}" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">New Project</a>
+                </div>
+            @else
                 <a href="{{ route('projects.create') }}" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">New Project</a>
             @endif
         </div>
@@ -21,18 +34,36 @@
                         <th class="px-6 py-3"></th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-gray-200" id="projectsTableBody">
                     @foreach($projects as $project)
-                        <tr>
+                        <tr 
+                            class="project-row {{ $project->trashed() ? 'trashed-project bg-gray-50 opacity-75' : '' }}"
+                            data-trashed="{{ $project->trashed() ? '1' : '0' }}"
+                        >
                             <td class="px-6 py-4 whitespace-nowrap font-medium">
-                                <a href="{{ route('projects.show', $project) }}" class="text-indigo-600 hover:underline">{{ $project->name }}</a>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ route('projects.show', $project) }}" class="text-indigo-600 hover:underline {{ $project->trashed() ? 'line-through' : '' }}">{{ $project->name }}</a>
+                                    @if($project->trashed())
+                                        <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">Deleted</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ Str::limit($project->description, 60) }}</td>
                             <td class="px-6 py-4 text-sm">{{ $project->epics_count }}</td>
                             <td class="px-6 py-4 text-right text-sm">
-                                <a href="{{ route('project-files.index', $project) }}" class="text-gray-600 hover:text-gray-900 mr-3">Files</a>
-                                @if(Auth::user()->isAdmin())
-                                    <a href="{{ route('projects.edit', $project) }}" class="text-gray-600 hover:text-gray-900">Edit</a>
+                                @if(!$project->trashed())
+                                    <a href="{{ route('project-files.index', $project) }}" class="text-gray-600 hover:text-gray-900 mr-3">Files</a>
+                                    @if(Auth::user()->isAdmin())
+                                        <a href="{{ route('projects.edit', $project) }}" class="text-gray-600 hover:text-gray-900">Edit</a>
+                                    @endif
+                                @else
+                                    @if(Auth::user()->isAdmin())
+                                        <form method="POST" action="{{ route('projects.restore', $project) }}" class="inline">
+                                            @csrf
+                                            <button type="submit" class="text-green-600 hover:text-green-900 mr-3" onclick="return confirm('Are you sure you want to restore this project? This will also restore all related epics and tasks.')">Restore</button>
+                                        </form>
+                                    @endif
+                                    <span class="text-gray-400">Deleted {{ $project->deleted_at->diffForHumans() }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -41,4 +72,37 @@
             </table>
         @endif
     </div>
+
+    @if(Auth::user()->isAdmin())
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const toggle = document.getElementById('showTrashedToggle');
+                const tableBody = document.getElementById('projectsTableBody');
+                
+                if (toggle && tableBody) {
+                    // Store preference in localStorage
+                    const stored = localStorage.getItem('showTrashedProjects');
+                    if (stored !== null) {
+                        toggle.checked = stored === 'true';
+                    }
+                    
+                    // Initial state
+                    updateVisibility();
+                    
+                    // Toggle event
+                    toggle.addEventListener('change', function() {
+                        localStorage.setItem('showTrashedProjects', this.checked);
+                        updateVisibility();
+                    });
+                    
+                    function updateVisibility() {
+                        const rows = tableBody.querySelectorAll('.trashed-project');
+                        rows.forEach(row => {
+                            row.style.display = toggle.checked ? '' : 'none';
+                        });
+                    }
+                }
+            });
+        </script>
+    @endif
 </x-app-layout>
