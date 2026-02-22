@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     public const VISIBILITY_PRIVATE = 'private';
     public const VISIBILITY_SHARED = 'shared';
@@ -46,7 +47,7 @@ class Project extends Model
 
     public function epics(): HasMany
     {
-        return $this->hasMany(Epic::class);
+        return $this->hasMany(Epic::class)->orderBy('position')->orderBy('id');
     }
 
     public function files(): HasMany

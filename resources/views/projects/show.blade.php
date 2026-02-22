@@ -56,45 +56,42 @@
         </div>
     @endif
 
+    @php
+        $userRole = $project->roleFor(auth()->user());
+        $viewMode = request('view', 'list');
+        if (!in_array($viewMode, ['list', 'kanban'], true)) {
+            $viewMode = 'list';
+        }
+        $canUpdate = ($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin();
+    @endphp
+
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6">
-            <h3 class="text-lg font-medium mb-4">Epics</h3>
-            @if($project->epics->isEmpty())
-                <p class="text-gray-500">No epics yet.</p>
-            @else
-                <div class="space-y-3">
-                    @foreach($project->epics as $epic)
-                        @if($epic->trashed())
-                            <div class="border rounded-lg p-4 bg-gray-50 opacity-60">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <span class="font-medium text-gray-400 line-through">{{ $epic->title }}</span>
-                                        <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">Deleted</span>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                        <div class="border rounded-lg p-4 hover:bg-gray-50">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <a href="{{ route('epics.show', $epic) }}" class="font-medium text-indigo-600 hover:underline">{{ $epic->title }}</a>
-                                    @if($epic->milestone_tag)
-                                        <span class="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">{{ $epic->milestone_tag }}</span>
-                                    @endif
-                                    @if($epic->description)
-                                        <p class="text-sm text-gray-500 mt-1">{{ Str::limit($epic->description, 100) }}</p>
-                                    @endif
-                                </div>
-                                <div class="flex gap-3 items-center">
-                                    <a href="{{ route('epics.kanban', $epic) }}" class="text-sm text-indigo-600 hover:underline">Kanban</a>
-                                    <span class="text-sm text-gray-400">{{ $epic->tasks->count() }} tasks</span>
-                                </div>
-                            </div>
-                        </div>
-                        @endif
-                    @endforeach
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <h3 class="text-lg font-medium">Epics</h3>
+                <div class="flex rounded-lg border border-gray-200 p-0.5 bg-gray-50" role="group">
+                    <a href="{{ route('projects.show', [$project, 'view' => 'list']) }}" class="px-3 py-1.5 text-sm font-medium rounded-md {{ $viewMode === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}">List</a>
+                    <a href="{{ route('projects.show', [$project, 'view' => 'kanban']) }}" class="px-3 py-1.5 text-sm font-medium rounded-md {{ $viewMode === 'kanban' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}">Kanban</a>
                 </div>
+            </div>
+            @if($viewMode === 'kanban')
+                @include('projects.partials.kanban-view', ['project' => $project, 'userRole' => $userRole])
+            @else
+                @include('projects.partials.list-view', ['project' => $project, 'userRole' => $userRole])
             @endif
         </div>
     </div>
+
+    @if($canUpdate && !$project->trashed())
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous"></script>
+        <script src="{{ asset('js/reorder.js') }}"></script>
+        <script>
+            window.ProjectReorder = {
+                projectId: {{ $project->id }},
+                csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                canUpdate: true,
+                viewMode: {{ json_encode($viewMode) }}
+            };
+        </script>
+    @endif
 </x-app-layout>

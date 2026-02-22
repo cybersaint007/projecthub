@@ -37,6 +37,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
 
     // Epics
+    Route::post('/projects/{project}/epics/reorder', [ProjectController::class, 'reorderEpics'])->name('projects.epics.reorder');
+    Route::post('/projects/{project}/tasks/reorder', [ProjectController::class, 'reorderTasks'])->name('projects.tasks.reorder');
     Route::get('/projects/{project}/epics/create', [EpicController::class, 'create'])->name('epics.create');
     Route::post('/projects/{project}/epics', [EpicController::class, 'store'])->name('epics.store');
     Route::get('/epics/{epic}', [EpicController::class, 'show'])->name('epics.show');

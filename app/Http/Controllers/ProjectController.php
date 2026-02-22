@@ -2,12 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Epic;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ProjectController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -221,6 +229,102 @@ class ProjectController extends Controller
 
             return redirect()->route('projects.show', $project)->with('status', 'Project restored.');
         });
+    }
+
+    /**
+     * Reorder epics within a project. Used by both List and Kanban views.
+     */
+    public function reorderEpics(Request $request, Project $project): JsonResponse
+    {
+        $this->authorize('update', $project);
+
+        $data = $request->validate([
+            'epic_ids' => 'required|array',
+            'epic_ids.*' => 'integer',
+        ]);
+
+        $epicIds = array_values(array_unique(array_map('intval', $data['epic_ids'])));
+        $epicIds = array_filter($epicIds, fn ($id) => $id > 0);
+        if ($epicIds === []) {
+            throw ValidationException::withMessages(['epic_ids' => ['At least one epic is required.']]);
+        }
+
+        $validIds = $project->epics()->withTrashed()->whereIn('id', $epicIds)->pluck('id')->all();
+        $invalid = array_diff($epicIds, $validIds);
+        if ($invalid !== []) {
+            throw ValidationException::withMessages([
+                'epic_ids' => ['One or more epics do not belong to this project.'],
+            ]);
+        }
+
+        DB::transaction(function () use ($epicIds) {
+            foreach ($epicIds as $index => $id) {
+                Epic::withTrashed()->where('id', $id)->update(['position' => ($index + 1) * 10]);
+            }
+        });
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Reorder tasks (and move across epics). Used by both List and Kanban views.
+     */
+    public function reorderTasks(Request $request, Project $project): JsonResponse
+    {
+        $this->authorize('update', $project);
+
+        $data = $request->validate([
+            'columns' => 'required|array',
+            'columns.*.epic_id' => 'required|integer',
+            'columns.*.task_ids' => 'required|array',
+            'columns.*.task_ids.*' => 'integer',
+        ]);
+
+        $projectEpicIds = $project->epics()->pluck('id')->all();
+        $allTaskIds = [];
+
+        foreach ($data['columns'] as $col) {
+            $epicId = (int) $col['epic_id'];
+            if (!in_array($epicId, $projectEpicIds, true)) {
+                throw ValidationException::withMessages([
+                    'columns' => ['One or more epic_ids do not belong to this project.'],
+                ]);
+            }
+            $taskIds = array_values(array_unique(array_map('intval', $col['task_ids'])));
+            foreach (array_filter($taskIds, fn ($id) => $id > 0) as $tid) {
+                $allTaskIds[] = $tid;
+            }
+        }
+
+        $allTaskIds = array_values(array_unique($allTaskIds));
+        $projectTaskIds = Task::query()
+            ->withTrashed()
+            ->whereIn('id', $allTaskIds)
+            ->whereHas('epic', fn ($q) => $q->where('project_id', $project->id))
+            ->pluck('id')
+            ->all();
+        $invalid = array_diff($allTaskIds, $projectTaskIds);
+        if ($invalid !== []) {
+            throw ValidationException::withMessages([
+                'columns' => ['One or more task_ids do not belong to this project.'],
+            ]);
+        }
+
+        DB::transaction(function () use ($data) {
+            foreach ($data['columns'] as $col) {
+                $epicId = (int) $col['epic_id'];
+                $taskIds = array_values(array_unique(array_map('intval', $col['task_ids'])));
+                $taskIds = array_values(array_filter($taskIds, fn ($id) => $id > 0));
+                foreach ($taskIds as $index => $taskId) {
+                    Task::withTrashed()->where('id', $taskId)->update([
+                        'epic_id' => $epicId,
+                        'position' => ($index + 1) * 10,
+                    ]);
+                }
+            }
+        });
+
+        return response()->json(['ok' => true]);
     }
 
     private function authorizeProject($user, Project $project): void
