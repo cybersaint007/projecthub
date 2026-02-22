@@ -20,9 +20,7 @@
                     <div class="border rounded-lg p-4 hover:bg-gray-50 epic-row" data-epic-id="{{ $epic->id }}">
                         <div class="flex justify-between items-start gap-2">
                             @if($canUpdate)
-                                <span class="epic-handle cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 shrink-0" title="Drag to reorder">
-                                    <i class="bi bi-grip-vertical text-lg" aria-hidden="true"></i>
-                                </span>
+                                <span class="epic-handle cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 shrink-0 inline-flex items-center justify-center min-w-[28px] select-none touch-none" style="user-select:none;-webkit-user-select:none" title="Drag to reorder" role="button" tabindex="-1">&#8942;&#8942;</span>
                             @endif
                             <div class="min-w-0 flex-1">
                                 <a href="{{ route('epics.show', $epic) }}" class="font-medium text-indigo-600 hover:underline">{{ $epic->title }}</a>
@@ -50,9 +48,7 @@
                                     @else
                                         <div class="task-row flex items-center gap-2 py-2 hover:bg-gray-50 rounded group" data-task-id="{{ $task->id }}">
                                             @if($canUpdate)
-                                                <span class="task-handle cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 shrink-0 opacity-0 group-hover:opacity-100" title="Drag to reorder">
-                                                    <i class="bi bi-grip-vertical" aria-hidden="true"></i>
-                                                </span>
+                                                <span class="task-handle cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 shrink-0 inline-flex items-center justify-center min-w-[24px] select-none touch-none" style="user-select:none;-webkit-user-select:none" title="Drag to reorder" role="button" tabindex="-1">&#8942;&#8942;</span>
                                             @endif
                                             <a href="{{ route('tasks.show', $task) }}" class="text-sm text-indigo-600 hover:underline flex-1 min-w-0 truncate">{{ $task->title }}</a>
                                             @php

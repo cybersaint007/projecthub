@@ -2,6 +2,9 @@
  * Shared drag-and-drop reorder for List and Kanban views.
  * Expects: Sortable on window (from CDN) and window.ProjectReorder = { projectId, csrfToken, canUpdate }.
  */
+// #region agent log
+(function _log() { try { fetch('http://127.0.0.1:7242/ingest/97a8e4b0-9368-47eb-ac40-bd1f9ec41989',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'reorder.js:start',message:'reorder.js loaded and executing',data:{hasSortable:!!window.Sortable},timestamp:Date.now(),hypothesisId:'B'})}).catch(function(){}); } catch(e) {} })();
+// #endregion
 (function () {
     'use strict';
     var Sortable = window.Sortable;
@@ -140,11 +143,4 @@
     window.initTaskSortables = initTaskSortables;
     window.saveTaskOrder = saveTaskOrder;
     window.showReorderToast = showToast;
-
-    document.addEventListener('DOMContentLoaded', function () {
-        var config = window.ProjectReorder;
-        if (!config || !config.canUpdate || !config.projectId || !config.csrfToken) return;
-        initEpicSortable(config.projectId, config.csrfToken);
-        initTaskSortables(config.projectId, config.csrfToken);
-    });
 })();

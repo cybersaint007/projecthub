@@ -83,15 +83,33 @@
     </div>
 
     @if($canUpdate && !$project->trashed())
-        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous"></script>
-        <script src="{{ asset('js/reorder.js') }}"></script>
+        <div id="reorder-config" data-reorder-config='@json(['projectId' => $project->id, 'viewMode' => $viewMode])' style="display:none"></div>
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous" onload="if(window.__reorderInit)window.__reorderInit()"></script>
         <script>
-            window.ProjectReorder = {
-                projectId: {{ $project->id }},
-                csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                canUpdate: true,
-                viewMode: {{ json_encode($viewMode) }}
-            };
+window.__reorderInit=function(){
+var el=document.getElementById('reorder-config');
+var meta=document.querySelector('meta[name="csrf-token"]');
+if(!window.Sortable||!el||!meta)return;
+var cfg=JSON.parse(el.getAttribute('data-reorder-config')||'{}');
+var projectId=cfg.projectId, csrfToken=meta.getAttribute('content')||'';
+if(!projectId||!csrfToken)return;
+function toast(msg,err){var ex=document.getElementById('reorder-toast');if(ex)ex.remove();var d=document.createElement('div');d.id='reorder-toast';d.className='fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 text-sm '+(err?'bg-red-600':'bg-green-600')+' text-white';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove();},3000);}
+var taskDebounce;
+function buildCols(){var cols=[];document.querySelectorAll('.task-sortable').forEach(function(c){var eid=c.dataset.epicId||c.getAttribute('data-epic-id');if(!eid)return;var tids=[];c.querySelectorAll('.task-row').forEach(function(r){var id=r.dataset.taskId||r.getAttribute('data-task-id');if(id)tids.push(parseInt(id,10));});cols.push({epic_id:parseInt(eid,10),task_ids:tids});});return cols;}
+function saveTasks(){var body=JSON.stringify({columns:buildCols()});fetch('/projects/'+projectId+'/tasks/reorder',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':csrfToken,'X-Requested-With':'XMLHttpRequest'},body:body}).then(function(r){if(r.ok){toast('Order saved.');return;}r.json().then(function(d){toast(d.message||(d.errors?Object.values(d.errors).flat().join(' '):'Failed to save order.'),true);});}).catch(function(){toast('Failed to save order.',true);});}
+function debounceSave(){if(taskDebounce)clearTimeout(taskDebounce);taskDebounce=setTimeout(function(){taskDebounce=null;saveTasks();},200);}
+var listEl=document.getElementById('epic-sortable'), kanbanEl=document.getElementById('kanban-columns');
+var cont=listEl||kanbanEl;
+var taskSortables=document.querySelectorAll('.task-sortable');
+if(cont){
+var isKanban=!!kanbanEl, itemSel=isKanban?'.kanban-column':'.epic-row';
+var epicOpts={draggable:isKanban?'.kanban-column':'.epic-row',animation:150,forceFallback:true,filter:'a',preventOnFilter:false,onEnd:function(){var ids=Array.prototype.map.call(cont.querySelectorAll(itemSel),function(r){return parseInt(r.dataset.epicId||r.getAttribute('data-epic-id'),10);}).filter(Boolean);if(ids.length===0)return;fetch('/projects/'+projectId+'/epics/reorder',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':csrfToken,'X-Requested-With':'XMLHttpRequest'},body:JSON.stringify({epic_ids:ids})}).then(function(r){if(r.ok){toast('Order saved.');return;}r.json().then(function(d){toast(d.message||(d.errors&&d.errors.epic_ids?d.errors.epic_ids.join(' '):'Failed'),true);});}).catch(function(){toast('Failed to save order.',true);});}};
+if(!isKanban)epicOpts.filter='a, .task-sortable';
+document.querySelectorAll('.task-sortable').forEach(function(c){try{window.Sortable.create(c,{group:'tasks',animation:150,forceFallback:true,filter:'a',preventOnFilter:false,onEnd:debounceSave});}catch(e){}});
+try{window.Sortable.create(cont,epicOpts);}catch(e){}
+}
+};
+if(window.Sortable)window.__reorderInit();
         </script>
     @endif
 </x-app-layout>
