@@ -35,7 +35,7 @@ class Task extends Model
     }
 
     public const STATUSES = ['Backlog', 'Ready', 'InProgress', 'Review', 'Done'];
-    public const AGENTS = ['claude_code', 'cursor2', 'human'];
+    public const AGENTS = ['claude_code', 'cursor2', 'deepseek', 'openclaw', 'human'];
     public const PRIORITIES = ['low', 'medium', 'high'];
 
     public function epic(): BelongsTo

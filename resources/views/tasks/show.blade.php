@@ -203,9 +203,11 @@
         <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="{ tab: 'claude' }">
             <h3 class="text-lg font-semibold mb-4">AI Prompt Generator</h3>
 
-            <div class="flex gap-2 mb-4">
+            <div class="flex flex-wrap gap-2 mb-4">
                 <button @click="tab = 'claude'" :class="tab === 'claude' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-4 py-2 text-sm rounded">Claude Code</button>
                 <button @click="tab = 'cursor'" :class="tab === 'cursor' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-4 py-2 text-sm rounded">Cursor 2</button>
+                <button @click="tab = 'deepseek'" :class="tab === 'deepseek' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-4 py-2 text-sm rounded">Deepseek</button>
+                <button @click="tab = 'openclaw'" :class="tab === 'openclaw' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-4 py-2 text-sm rounded">OpenClaw</button>
             </div>
 
             {{-- Claude Code Prompt --}}
@@ -255,6 +257,44 @@
                 @endphp
                 <textarea id="cursor-prompt" readonly rows="18" class="w-full font-mono text-sm border-gray-300 rounded-md bg-gray-50 focus:ring-0">{{ $cursorPrompt }}</textarea>
                 <button onclick="navigator.clipboard.writeText(document.getElementById('cursor-prompt').value).then(() => this.textContent = 'Copied!').catch(() => {}); setTimeout(() => this.textContent = 'Copy to Clipboard', 2000)" class="mt-2 px-4 py-2 bg-gray-800 text-white text-sm rounded hover:bg-gray-900">Copy to Clipboard</button>
+            </div>
+
+            {{-- Deepseek Prompt --}}
+            <div x-show="tab === 'deepseek'" x-cloak>
+                @php
+                $deepseekPrompt = "## Task: {$task->title}\n\n";
+                $deepseekPrompt .= "### Background / Context\n";
+                $deepseekPrompt .= ($task->context ?: 'N/A') . "\n\n";
+                $deepseekPrompt .= "### Goal / Instructions\n";
+                $deepseekPrompt .= ($task->instructions ?: 'N/A') . "\n\n";
+                $deepseekPrompt .= "### Acceptance Criteria\n";
+                $deepseekPrompt .= ($task->acceptance_criteria ?: 'N/A') . "\n\n";
+                $deepseekPrompt .= "### Constraints\n";
+                $deepseekPrompt .= "- Keep it MVP. Do not add extra features beyond what is specified.\n";
+                $deepseekPrompt .= "- Follow existing project conventions and patterns.\n";
+                $deepseekPrompt .= "- Verify with: php artisan serve + manual testing.";
+                @endphp
+                <textarea id="deepseek-prompt" readonly rows="18" class="w-full font-mono text-sm border-gray-300 rounded-md bg-gray-50 focus:ring-0">{{ $deepseekPrompt }}</textarea>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('deepseek-prompt').value).then(() => this.textContent = 'Copied!').catch(() => {}); setTimeout(() => this.textContent = 'Copy to Clipboard', 2000)" class="mt-2 px-4 py-2 bg-gray-800 text-white text-sm rounded hover:bg-gray-900">Copy to Clipboard</button>
+            </div>
+
+            {{-- OpenClaw Prompt --}}
+            <div x-show="tab === 'openclaw'" x-cloak>
+                @php
+                $openclawPrompt = "## Task: {$task->title}\n\n";
+                $openclawPrompt .= "### Background / Context\n";
+                $openclawPrompt .= ($task->context ?: 'N/A') . "\n\n";
+                $openclawPrompt .= "### Goal / Instructions\n";
+                $openclawPrompt .= ($task->instructions ?: 'N/A') . "\n\n";
+                $openclawPrompt .= "### Acceptance Criteria\n";
+                $openclawPrompt .= ($task->acceptance_criteria ?: 'N/A') . "\n\n";
+                $openclawPrompt .= "### Constraints\n";
+                $openclawPrompt .= "- Keep it MVP. Do not add extra features beyond what is specified.\n";
+                $openclawPrompt .= "- Follow existing project conventions and patterns.\n";
+                $openclawPrompt .= "- Verify with: php artisan serve + manual testing.";
+                @endphp
+                <textarea id="openclaw-prompt" readonly rows="18" class="w-full font-mono text-sm border-gray-300 rounded-md bg-gray-50 focus:ring-0">{{ $openclawPrompt }}</textarea>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('openclaw-prompt').value).then(() => this.textContent = 'Copied!').catch(() => {}); setTimeout(() => this.textContent = 'Copy to Clipboard', 2000)" class="mt-2 px-4 py-2 bg-gray-800 text-white text-sm rounded hover:bg-gray-900">Copy to Clipboard</button>
             </div>
         </div>
 

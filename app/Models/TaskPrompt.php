@@ -20,10 +20,20 @@ class TaskPrompt extends Model
         'title',
         'version',
         'content',
+        'created_by',
     ];
 
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
+    }
+
+    public static function nextVersionFor(int $taskId, string $agentType): int
+    {
+        $max = static::where('task_id', $taskId)
+            ->where('agent_type', $agentType)
+            ->max('version');
+
+        return (int) $max + 1;
     }
 }
