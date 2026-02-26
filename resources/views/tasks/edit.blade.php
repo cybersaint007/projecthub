@@ -35,8 +35,8 @@
                 <div>
                     <x-input-label for="priority" value="Priority" />
                     <select id="priority" name="priority" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        @foreach(\App\Models\Task::PRIORITIES as $p)
-                            <option value="{{ $p }}" {{ old('priority', $task->priority) === $p ? 'selected' : '' }}>{{ ucfirst($p) }}</option>
+                        @foreach(\App\Models\Task::priorityOptions() as $value => $label)
+                            <option value="{{ $value }}" {{ old('priority', (string)$task->priority) === (string)$value ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>

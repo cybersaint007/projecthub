@@ -60,9 +60,10 @@
                                 <td class="px-4 py-3 text-sm text-gray-500">{{ $task->agent }}</td>
                                 <td class="px-4 py-3">
                                     @php
-                                        $priorityColors = ['low' => 'text-gray-500', 'medium' => 'text-yellow-600', 'high' => 'text-red-600'];
+                                        $priorityColors = [1 => 'text-gray-500', 3 => 'text-yellow-600', 5 => 'text-red-600'];
+                                        $priorityLabels = \App\Models\Task::priorityOptions();
                                     @endphp
-                                    <span class="text-sm {{ $priorityColors[$task->priority] ?? '' }}">{{ ucfirst($task->priority) }}</span>
+                                    <span class="text-sm {{ $priorityColors[$task->priority] ?? 'text-gray-500' }}">{{ $priorityLabels[$task->priority] ?? 'Medium' }}</span>
                                 </td>
                             </tr>
                         @endforeach

@@ -53,7 +53,7 @@
                                         </div>
                                         <div class="flex justify-between items-center mt-2">
                                             <span class="text-xs px-1.5 py-0.5 rounded {{ $statusColors[$task->status] ?? '' }}">{{ $task->status }}</span>
-                                            <span class="text-xs text-gray-400">{{ $task->priority }}</span>
+                                            <span class="text-xs text-gray-400">{{ \App\Models\Task::priorityOptions()[$task->priority] ?? 'Medium' }}</span>
                                         </div>
                                     </div>
                                 @endif

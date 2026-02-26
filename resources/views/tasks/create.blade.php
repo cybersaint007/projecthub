@@ -16,7 +16,7 @@
                     <x-input-label for="status" value="Status" />
                     <select id="status" name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         @foreach(\App\Models\Task::STATUSES as $s)
-                            <option value="{{ $s }}" {{ old('status', 'Backlog') === $s ? 'selected' : '' }}>{{ $s }}</option>
+                            <option value="{{ $s }}" {{ old('status', 'TODO') === $s ? 'selected' : '' }}>{{ $s }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -34,8 +34,8 @@
                 <div>
                     <x-input-label for="priority" value="Priority" />
                     <select id="priority" name="priority" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        @foreach(\App\Models\Task::PRIORITIES as $p)
-                            <option value="{{ $p }}" {{ old('priority', 'medium') === $p ? 'selected' : '' }}>{{ ucfirst($p) }}</option>
+                        @foreach(\App\Models\Task::priorityOptions() as $value => $label)
+                            <option value="{{ $value }}" {{ old('priority', 3) == $value ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -44,9 +44,10 @@
                             <a href="{{ route('tasks.show', $task) }}" class="text-sm font-medium text-gray-800 hover:text-indigo-600">{{ $task->title }}</a>
                             <div class="flex justify-between items-center mt-2">
                                 @php
-                                    $priorityColors = ['low' => 'bg-gray-100 text-gray-600', 'medium' => 'bg-yellow-100 text-yellow-700', 'high' => 'bg-red-100 text-red-700'];
+                                    $priorityColors = [1 => 'bg-gray-100 text-gray-600', 3 => 'bg-yellow-100 text-yellow-700', 5 => 'bg-red-100 text-red-700'];
+                                    $priorityLabels = \App\Models\Task::priorityOptions();
                                 @endphp
-                                <span class="text-xs px-1.5 py-0.5 rounded {{ $priorityColors[$task->priority] ?? '' }}">{{ $task->priority }}</span>
+                                <span class="text-xs px-1.5 py-0.5 rounded {{ $priorityColors[$task->priority] ?? 'bg-gray-100 text-gray-600' }}">{{ $priorityLabels[$task->priority] ?? 'Medium' }}</span>
                                 <span class="text-xs text-gray-400">{{ $task->agent }}</span>
                             </div>
                             {{-- Status change buttons --}}

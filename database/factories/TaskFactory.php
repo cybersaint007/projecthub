@@ -19,7 +19,7 @@ class TaskFactory extends Factory
             'description' => fake()->optional()->paragraph(),
             'status' => 'Backlog',
             'agent' => 'human',
-            'priority' => 'medium',
+            'priority' => 3,
         ];
     }
 }

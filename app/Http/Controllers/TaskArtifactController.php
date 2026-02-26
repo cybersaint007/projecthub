@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\TaskArtifact;
+use App\Models\ProjectFile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TaskArtifactController extends Controller
 {
@@ -21,6 +23,44 @@ class TaskArtifactController extends Controller
         $task->artifacts()->create($data);
 
         return back()->with('status', 'Artifact added.');
+    }
+
+    public function storeFile(Request $request, Task $task)
+    {
+        $this->authorizeTask($request->user(), $task);
+
+        $request->validate([
+            'file' => [
+                'required',
+                'file',
+                'max:' . (ProjectFile::MAX_SIZE / 1024),
+                'mimes:' . implode(',', ProjectFile::ALLOWED_EXTENSIONS),
+            ],
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        $file = $request->file('file');
+        $project = $task->epic->project;
+        $now = now();
+        $path = sprintf('projects/%d/%s/%s', $project->id, $now->format('Y'), $now->format('m'));
+        $storedPath = $file->store($path, 'projecthub_private');
+
+        $project->files()->create([
+            'uploader_user_id' => $request->user()->id,
+            'original_name' => $file->getClientOriginalName(),
+            'stored_path' => $storedPath,
+            'mime_type' => $file->getClientMimeType(),
+            'size' => $file->getSize(),
+            'note' => $request->note,
+        ]);
+
+        $task->artifacts()->create([
+            'type' => 'file_path',
+            'value' => $storedPath,
+            'note' => $request->note ?: $file->getClientOriginalName(),
+        ]);
+
+        return back()->with('status', 'File uploaded to task.');
     }
 
     public function destroy(Request $request, TaskArtifact $artifact)

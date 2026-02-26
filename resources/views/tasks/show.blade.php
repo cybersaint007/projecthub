@@ -17,13 +17,23 @@
     </x-slot>
 
     <div class="space-y-6">
-        {{-- Basic Info --}}
+        {{-- Section 1: Description (editable) + meta --}}
         <div class="bg-white shadow-sm sm:rounded-lg p-6">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <h3 class="text-lg font-semibold mb-4">Description</h3>
+            <form method="POST" action="{{ route('tasks.description.update', $task) }}" class="mb-6">
+                @csrf
+                @method('PATCH')
+                <textarea name="description" rows="4" class="block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Task description...">{{ old('description', $task->description) }}</textarea>
+                <x-input-error :messages="$errors->get('description')" class="mt-2" />
+                <button type="submit" class="mt-2 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700">Update description</button>
+            </form>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
                 <div>
                     <span class="text-xs text-gray-500 uppercase">Status</span>
                     @php
                         $statusColors = [
+                            'TODO' => 'bg-gray-100 text-gray-700',
                             'Backlog' => 'bg-gray-100 text-gray-700',
                             'Ready' => 'bg-blue-100 text-blue-700',
                             'InProgress' => 'bg-yellow-100 text-yellow-700',
@@ -32,7 +42,15 @@
                         ];
                     @endphp
                     <div class="mt-1">
-                        <span class="px-2 py-1 text-sm rounded {{ $statusColors[$task->status] ?? '' }}">{{ $task->status }}</span>
+                        <form method="POST" action="{{ route('tasks.status', $task) }}" class="inline">
+                            @csrf
+                            @method('PATCH')
+                            <select name="status" onchange="this.form.submit()" class="text-sm border-0 rounded py-1 pr-6 {{ $statusColors[$task->status] ?? 'bg-gray-100 text-gray-700' }} focus:ring-indigo-500">
+                                @foreach(\App\Models\Task::STATUSES as $s)
+                                    <option value="{{ $s }}" {{ $task->status === $s ? 'selected' : '' }}>{{ $s }}</option>
+                                @endforeach
+                            </select>
+                        </form>
                     </div>
                 </div>
                 <div>
@@ -42,9 +60,10 @@
                 <div>
                     <span class="text-xs text-gray-500 uppercase">Priority</span>
                     @php
-                        $priorityColors = ['low' => 'text-gray-600', 'medium' => 'text-yellow-600', 'high' => 'text-red-600'];
+                        $priorityLabels = \App\Models\Task::priorityOptions();
+                        $priorityColors = [1 => 'text-gray-600', 3 => 'text-yellow-600', 5 => 'text-red-600'];
                     @endphp
-                    <div class="mt-1 text-sm font-medium {{ $priorityColors[$task->priority] ?? '' }}">{{ ucfirst($task->priority) }}</div>
+                    <div class="mt-1 text-sm font-medium {{ $priorityColors[$task->priority] ?? 'text-gray-600' }}">{{ $priorityLabels[$task->priority] ?? 'Medium' }}</div>
                 </div>
                 <div>
                     <span class="text-xs text-gray-500 uppercase">Tags</span>
@@ -55,32 +74,6 @@
                     </div>
                 </div>
             </div>
-
-            {{-- Status change --}}
-            <div class="flex gap-2 mt-4 pt-4 border-t">
-                @php $statuses = \App\Models\Task::STATUSES; $idx = array_search($task->status, $statuses); @endphp
-                @if($idx > 0)
-                    <form method="POST" action="{{ route('tasks.status', $task) }}">
-                        @csrf @method('PATCH')
-                        <input type="hidden" name="status" value="{{ $statuses[$idx - 1] }}">
-                        <button type="submit" class="px-3 py-1 text-sm border rounded hover:bg-gray-50">&larr; {{ $statuses[$idx - 1] }}</button>
-                    </form>
-                @endif
-                @if($idx < count($statuses) - 1)
-                    <form method="POST" action="{{ route('tasks.status', $task) }}">
-                        @csrf @method('PATCH')
-                        <input type="hidden" name="status" value="{{ $statuses[$idx + 1] }}">
-                        <button type="submit" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ $statuses[$idx + 1] }} &rarr;</button>
-                    </form>
-                @endif
-            </div>
-
-            @if($task->description)
-                <div class="mt-4 pt-4 border-t">
-                    <h4 class="text-sm font-medium text-gray-500 mb-1">Description</h4>
-                    <p class="text-gray-700 whitespace-pre-wrap">{{ $task->description }}</p>
-                </div>
-            @endif
 
             @if($task->context)
                 <div class="mt-4 pt-4 border-t">
@@ -198,6 +191,57 @@
                 </form>
             </div>
         </x-modal>
+
+        {{-- Section 3: Work Logs timeline --}}
+        <div class="bg-white shadow-sm sm:rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">Work Logs</h3>
+
+            <form method="POST" action="{{ route('task-logs.store', $task) }}" class="mb-6 p-4 border rounded-lg bg-gray-50">
+                @csrf
+                <input type="hidden" name="log_type" value="manual" />
+                <div class="space-y-3">
+                    <textarea name="content" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Add a work log entry..." required></textarea>
+                    <x-input-error :messages="$errors->get('content')" class="mt-1" />
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">Add Log</button>
+                </div>
+            </form>
+
+            @if($task->taskLogs->isEmpty())
+                <p class="text-gray-500 text-sm">No work logs yet. Add one above.</p>
+            @else
+                <div class="space-y-0 border-l-2 border-gray-200 pl-4">
+                    @foreach($task->taskLogs as $log)
+                        <div class="relative pb-6 last:pb-0" x-data="{ editing: false }">
+                            <span class="absolute -left-4 top-1.5 h-2 w-2 rounded-full {{ $log->log_type === 'manual' ? 'bg-indigo-500' : ($log->log_type === 'ai' ? 'bg-purple-500' : 'bg-gray-400') }}" aria-hidden="true"></span>
+                            <div class="ml-2">
+                                <div class="flex items-center gap-2 text-xs text-gray-500 mb-0.5">
+                                    <span class="px-1.5 py-0.5 rounded {{ $log->log_type === 'manual' ? 'bg-indigo-100 text-indigo-700' : ($log->log_type === 'ai' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600') }}">{{ $log->log_type }}</span>
+                                    <span>{{ $log->created_at->format('M j, Y H:i') }}</span>
+                                    @if($log->user)
+                                        <span>{{ $log->user->name }}</span>
+                                    @endif
+                                    <button type="button" @click="editing = !editing" class="ml-auto text-[11px] text-indigo-600 hover:underline">Edit</button>
+                                </div>
+                                <div x-show="!editing">
+                                    <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ $log->content }}</p>
+                                </div>
+                                <div x-show="editing" class="mt-2">
+                                    <form method="POST" action="{{ route('task-logs.update', $log) }}" class="space-y-2">
+                                        @csrf
+                                        @method('PATCH')
+                                        <textarea name="content" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>{{ old('content', $log->content) }}</textarea>
+                                        <div class="flex items-center gap-2">
+                                            <button type="submit" class="px-3 py-1.5 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700">Save</button>
+                                            <button type="button" @click="editing = false" class="px-3 py-1.5 text-xs border rounded hover:bg-gray-50">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
 
         {{-- AI Prompt Generator (legacy quick preview) --}}
         <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="{ tab: 'claude' }">

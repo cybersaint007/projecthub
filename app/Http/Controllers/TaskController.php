@@ -24,14 +24,14 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:' . implode(',', Task::STATUSES),
             'agent' => 'required|in:' . implode(',', Task::AGENTS),
-            'priority' => 'required|in:' . implode(',', Task::PRIORITIES),
+            'priority' => 'required|integer|in:1,3,5',
             'tags' => 'nullable|string',
             'context' => 'nullable|string',
             'instructions' => 'nullable|string',
             'acceptance_criteria' => 'nullable|string',
         ]);
 
-        if (!empty($data['tags'])) {
+        if (! empty($data['tags'])) {
             $data['tags'] = array_map('trim', explode(',', $data['tags']));
         }
 
@@ -44,7 +44,7 @@ class TaskController extends Controller
     {
         $this->authorizeEpic($request->user(), $task->epic);
 
-        $task->load(['epic.project', 'artifacts', 'reviews', 'taskPrompts']);
+        $task->load(['epic.project', 'artifacts', 'reviews', 'taskPrompts', 'taskLogs' => fn ($q) => $q->with('user')]);
 
         return view('tasks.show', compact('task'));
     }
@@ -67,14 +67,14 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:' . implode(',', Task::STATUSES),
             'agent' => 'required|in:' . implode(',', Task::AGENTS),
-            'priority' => 'required|in:' . implode(',', Task::PRIORITIES),
+            'priority' => 'required|integer|in:1,3,5',
             'tags' => 'nullable|string',
             'context' => 'nullable|string',
             'instructions' => 'nullable|string',
             'acceptance_criteria' => 'nullable|string',
         ]);
 
-        if (!empty($data['tags'])) {
+        if (! empty($data['tags'])) {
             $data['tags'] = array_map('trim', explode(',', $data['tags']));
         } else {
             $data['tags'] = null;
@@ -96,6 +96,19 @@ class TaskController extends Controller
         $task->update($data);
 
         return back()->with('status', 'Task status updated.');
+    }
+
+    public function updateDescription(Request $request, Task $task)
+    {
+        $this->authorizeEpic($request->user(), $task->epic);
+
+        $data = $request->validate([
+            'description' => 'nullable|string|max:65535',
+        ]);
+
+        $task->update($data);
+
+        return back()->with('status', 'Description updated.');
     }
 
     public function destroy(Request $request, Task $task)

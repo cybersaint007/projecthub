@@ -9,6 +9,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectFileController;
 use App\Http\Controllers\TaskArtifactController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskLogController;
 use App\Http\Controllers\TaskPromptController;
 use App\Http\Controllers\TaskReviewController;
 use Illuminate\Support\Facades\Route;
@@ -55,9 +56,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
     Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+    Route::patch('/tasks/{task}/description', [TaskController::class, 'updateDescription'])->name('tasks.description.update');
+    Route::post('/tasks/{task}/logs', [TaskLogController::class, 'store'])->name('task-logs.store');
+    Route::patch('/task-logs/{taskLog}', [TaskLogController::class, 'update'])->name('task-logs.update');
 
     // Task Artifacts
     Route::post('/tasks/{task}/artifacts', [TaskArtifactController::class, 'store'])->name('artifacts.store');
+    Route::post('/tasks/{task}/artifacts/file', [TaskArtifactController::class, 'storeFile'])->name('artifacts.store-file');
     Route::delete('/artifacts/{artifact}', [TaskArtifactController::class, 'destroy'])->name('artifacts.destroy');
 
     // Task Prompts (AI Prompts)
