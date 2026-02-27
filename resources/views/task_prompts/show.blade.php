@@ -13,7 +13,7 @@
             </div>
             <div class="flex gap-2">
                 <a href="{{ route('prompts.edit', [$task, $prompt]) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">Edit</a>
-                <a href="{{ route('tasks.show', $task) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">Back to Task</a>
+                <a href="{{ route('tasks.show', $task) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Task</a>
             </div>
         </div>
     </x-slot>
