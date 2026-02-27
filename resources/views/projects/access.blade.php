@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Manage access: {{ $project->name }}</h2>
-            <a href="{{ route('projects.show', $project) }}" class="text-sm text-gray-600 hover:underline">Back to project</a>
+            <a href="{{ route('projects.show', $project) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Project</a>
         </div>
     </x-slot>
 
