@@ -15,6 +15,7 @@
             </div>
             @php $userRole = $project->roleFor(auth()->user()); @endphp
             <div class="flex gap-2 flex-wrap">
+                <a href="{{ route('projects.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Projects</a>
                 @if($project->trashed())
                     @if(Auth::user()->isAdmin())
                         <form method="POST" action="{{ route('projects.restore', $project) }}" class="inline">
