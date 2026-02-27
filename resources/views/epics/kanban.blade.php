@@ -9,7 +9,10 @@
                     <a href="{{ route('epics.show', $epic) }}" class="hover:underline">{{ $epic->title }}</a>
                 </p>
             </div>
-            <a href="{{ route('tasks.create', $epic) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">New Task</a>
+            <div class="flex gap-2">
+                <a href="{{ route('epics.show', $epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Epic</a>
+                <a href="{{ route('tasks.create', $epic) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">New Task</a>
+            </div>
         </div>
     </x-slot>
 
