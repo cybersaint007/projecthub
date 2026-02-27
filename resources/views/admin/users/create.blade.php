@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Create User</h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Create User</h2>
+            <a href="{{ route('admin.users.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Users</a>
+        </div>
     </x-slot>
 
     <div class="max-w-md mx-auto bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">

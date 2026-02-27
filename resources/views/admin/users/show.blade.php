@@ -10,6 +10,7 @@
                 </p>
             </div>
             <div class="flex gap-2">
+                <a href="{{ route('admin.users.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Users</a>
                 <a href="{{ route('admin.users.edit', $user) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">Edit</a>
                 <form method="POST" action="{{ route('admin.users.reset-password', $user) }}" onsubmit="return confirm('Reset password?')">
                     @csrf
