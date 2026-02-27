@@ -4,7 +4,7 @@
             <div>
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">Files: {{ $project->name }}</h2>
             </div>
-            <a href="{{ route('projects.show', $project) }}" class="text-sm text-gray-600 hover:underline">&larr; Back to Project</a>
+            <a href="{{ route('projects.show', $project) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Project</a>
         </div>
     </x-slot>
 
