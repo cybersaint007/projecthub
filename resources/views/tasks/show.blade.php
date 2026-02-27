@@ -10,6 +10,7 @@
                 </p>
             </div>
             <div class="flex gap-2">
+                <a href="{{ route('epics.show', $task->epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Tasks</a>
                 <a href="{{ route('epics.kanban', $task->epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">Kanban</a>
                 <a href="{{ route('tasks.edit', $task) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">Edit</a>
             </div>
