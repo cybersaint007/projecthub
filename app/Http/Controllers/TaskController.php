@@ -44,7 +44,7 @@ class TaskController extends Controller
     {
         $this->authorizeEpic($request->user(), $task->epic);
 
-        $task->load(['epic.project', 'artifacts', 'reviews', 'taskPrompts', 'taskLogs' => fn ($q) => $q->with('user')]);
+        $task->load(['epic.project', 'artifacts.projectFile', 'reviews', 'taskPrompts', 'taskLogs' => fn ($q) => $q->with('user')]);
 
         return view('tasks.show', compact('task'));
     }

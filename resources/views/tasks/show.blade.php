@@ -355,7 +355,9 @@
                         <select name="type" class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                             <option value="">{{ __('ui.type_placeholder') }}</option>
                             @foreach(\App\Models\TaskArtifact::TYPES as $t)
-                                <option value="{{ $t }}">{{ $t }}</option>
+                                @if($t !== 'file_path')
+                                    <option value="{{ $t }}">{{ $t }}</option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
@@ -369,6 +371,23 @@
                 </div>
             </form>
 
+            {{-- File upload form --}}
+            <form method="POST" action="{{ route('artifacts.store-file', $task) }}" enctype="multipart/form-data" class="mb-4 p-4 border rounded-lg bg-gray-50">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                        <x-input-label for="artifact-file" :value="__('ui.file_max_size')" />
+                        <input id="artifact-file" name="file" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required />
+                    </div>
+                    <div>
+                        <x-text-input name="note" type="text" class="block w-full text-sm" :placeholder="__('ui.note_optional')" />
+                    </div>
+                    <div>
+                        <x-primary-button class="whitespace-nowrap">{{ __('ui.upload') }}</x-primary-button>
+                    </div>
+                </div>
+            </form>
+
             @if($task->artifacts->isEmpty())
                 <p class="text-gray-500 text-sm">{{ __('ui.no_artifacts_yet') }}</p>
             @else
@@ -377,7 +396,14 @@
                         <div class="flex items-center justify-between p-3 border rounded">
                             <div>
                                 <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded mr-2">{{ $artifact->type }}</span>
-                                <span class="text-sm">{{ $artifact->value }}</span>
+                                @if($artifact->type === 'file_path' && $artifact->projectFile)
+                                    <a href="{{ route('project-files.download', $artifact->projectFile) }}" class="text-sm text-indigo-600 hover:underline">{{ $artifact->projectFile->original_name }}</a>
+                                    <span class="text-xs text-gray-400 ml-2">({{ number_format($artifact->projectFile->size / 1024, 1) }} KB)</span>
+                                @elseif($artifact->type === 'url' || $artifact->type === 'pr')
+                                    <a href="{{ $artifact->value }}" target="_blank" class="text-sm text-indigo-600 hover:underline">{{ $artifact->value }}</a>
+                                @else
+                                    <span class="text-sm">{{ $artifact->value }}</span>
+                                @endif
                                 @if($artifact->note)
                                     <span class="text-xs text-gray-400 ml-2">{{ $artifact->note }}</span>
                                 @endif
