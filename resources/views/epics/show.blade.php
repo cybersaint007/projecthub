@@ -11,10 +11,10 @@
                 </p>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('projects.show', $epic->project) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Project</a>
-                <a href="{{ route('epics.kanban', $epic) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">Kanban</a>
-                <a href="{{ route('tasks.create', $epic) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">New Task</a>
-                <a href="{{ route('epics.edit', $epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">Edit</a>
+                <a href="{{ route('projects.show', $epic->project) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; {{ __('ui.back_to_project') }}</a>
+                <a href="{{ route('epics.kanban', $epic) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">{{ __('ui.kanban') }}</a>
+                <a href="{{ route('tasks.create', $epic) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_task') }}</a>
+                <a href="{{ route('epics.edit', $epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">{{ __('ui.edit') }}</a>
             </div>
         </div>
     </x-slot>
@@ -27,17 +27,17 @@
 
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6">
-            <h3 class="text-lg font-medium mb-4">Tasks ({{ $epic->tasks->count() }})</h3>
+            <h3 class="text-lg font-medium mb-4">{{ __('ui.tasks') }} ({{ $epic->tasks->count() }})</h3>
             @if($epic->tasks->isEmpty())
-                <p class="text-gray-500">No tasks yet.</p>
+                <p class="text-gray-500">{{ __('ui.no_tasks_yet') }}</p>
             @else
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('ui.title') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('ui.status') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('ui.agent') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('ui.priority') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">

@@ -10,17 +10,17 @@
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        Dashboard
+                        {{ __('ui.nav_dashboard') }}
                     </x-nav-link>
                     <x-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')">
-                        Projects
+                        {{ __('ui.nav_projects') }}
                     </x-nav-link>
                     @if(Auth::user()->isAdmin())
                         <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                            Users
+                            {{ __('ui.nav_users') }}
                         </x-nav-link>
                         <x-nav-link :href="route('imports.backlog.show')" :active="request()->routeIs('imports.*')">
-                            Import
+                            {{ __('ui.nav_import') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -32,7 +32,7 @@
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
                             @if(Auth::user()->isAdmin())
-                                <span class="ml-1 px-1.5 py-0.5 text-xs bg-indigo-100 text-indigo-700 rounded">Admin</span>
+                                <span class="ml-1 px-1.5 py-0.5 text-xs bg-indigo-100 text-indigo-700 rounded">{{ __('ui.admin_badge') }}</span>
                             @endif
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -44,12 +44,12 @@
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('password.change')">
-                            Change Password
+                            {{ __('ui.nav_change_password') }}
                         </x-dropdown-link>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
-                                Log Out
+                                {{ __('ui.nav_log_out') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
@@ -69,11 +69,11 @@
 
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')">Projects</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('ui.nav_dashboard') }}</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')">{{ __('ui.nav_projects') }}</x-responsive-nav-link>
             @if(Auth::user()->isAdmin())
-                <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">Users</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('imports.backlog.show')" :active="request()->routeIs('imports.*')">Import</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">{{ __('ui.nav_users') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('imports.backlog.show')" :active="request()->routeIs('imports.*')">{{ __('ui.nav_import') }}</x-responsive-nav-link>
             @endif
         </div>
         <div class="pt-4 pb-1 border-t border-gray-200">
@@ -85,7 +85,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
-                        Log Out
+                        {{ __('ui.nav_log_out') }}
                     </x-responsive-nav-link>
                 </form>
             </div>

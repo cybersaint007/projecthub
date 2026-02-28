@@ -5,7 +5,7 @@
                 <div class="flex items-center gap-2 flex-wrap">
                     <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $project->name }}</h2>
                     @if($project->trashed())
-                        <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">Deleted</span>
+                        <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">{{ __('ui.deleted') }}</span>
                     @endif
                     @include('projects.partials.access-badges', ['project' => $project, 'user' => auth()->user()])
                 </div>
@@ -15,30 +15,30 @@
             </div>
             @php $userRole = $project->roleFor(auth()->user()); @endphp
             <div class="flex gap-2 flex-wrap">
-                <a href="{{ route('projects.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Projects</a>
+                <a href="{{ route('projects.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; {{ __('ui.back_to_projects') }}</a>
                 @if($project->trashed())
                     @if(Auth::user()->isAdmin())
                         <form method="POST" action="{{ route('projects.restore', $project) }}" class="inline">
                             @csrf
-                            <button type="submit" class="px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700" onclick="return confirm('Are you sure you want to restore this project? This will also restore all related epics and tasks.')">Restore Project</button>
+                            <button type="submit" class="px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700" onclick="return confirm('{{ __('ui.confirm_restore_project') }}')">{{ __('ui.restore_project') }}</button>
                         </form>
                     @endif
                 @else
-                    <a href="{{ route('project-files.index', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">Files</a>
+                    <a href="{{ route('project-files.index', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">{{ __('ui.files') }}</a>
                     @if(($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin())
-                        <a href="{{ route('epics.create', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">New Epic</a>
+                        <a href="{{ route('epics.create', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_epic') }}</a>
                     @endif
                     @if(($userRole && $userRole !== 'viewer') || Auth::user()->isAdmin())
-                        <a href="{{ route('projects.edit', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">Edit</a>
+                        <a href="{{ route('projects.edit', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.edit') }}</a>
                     @endif
                     @if($userRole === 'owner' || Auth::user()->isAdmin())
-                        <a href="{{ route('projects.access', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">Manage access</a>
+                        <a href="{{ route('projects.access', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">{{ __('ui.manage_access') }}</a>
                     @endif
                     @if(Auth::user()->isAdmin())
                         <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700" onclick="return confirm('Are you sure you want to delete this project? This will also delete all related epics and tasks. This action can be undone by restoring the project.')">Delete Project</button>
+                            <button type="submit" class="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700" onclick="return confirm('{{ __('ui.confirm_delete_project') }}')">{{ __('ui.delete_project') }}</button>
                         </form>
                     @endif
                 @endif
@@ -48,7 +48,7 @@
 
     @if($project->users->isNotEmpty() && Auth::user()->isAdmin())
         <div class="mb-4 bg-white shadow-sm sm:rounded-lg p-4">
-            <h3 class="text-sm font-medium text-gray-500 mb-2">Assigned Users</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">{{ __('ui.assigned_users') }}</h3>
             <div class="flex flex-wrap gap-2">
                 @foreach($project->users as $user)
                     <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">{{ $user->name }}</span>
@@ -69,10 +69,10 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6">
             <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <h3 class="text-lg font-medium">Epics</h3>
+                <h3 class="text-lg font-medium">{{ __('ui.epics') }}</h3>
                 <div class="flex rounded-lg border border-gray-200 p-0.5 bg-gray-50" role="group">
-                    <a href="{{ route('projects.show', [$project, 'view' => 'list']) }}" class="px-3 py-1.5 text-sm font-medium rounded-md {{ $viewMode === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}">List</a>
-                    <a href="{{ route('projects.show', [$project, 'view' => 'kanban']) }}" class="px-3 py-1.5 text-sm font-medium rounded-md {{ $viewMode === 'kanban' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}">Kanban</a>
+                    <a href="{{ route('projects.show', [$project, 'view' => 'list']) }}" class="px-3 py-1.5 text-sm font-medium rounded-md {{ $viewMode === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}">{{ __('ui.list') }}</a>
+                    <a href="{{ route('projects.show', [$project, 'view' => 'kanban']) }}" class="px-3 py-1.5 text-sm font-medium rounded-md {{ $viewMode === 'kanban' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}">{{ __('ui.kanban') }}</a>
                 </div>
             </div>
             @if($viewMode === 'kanban')

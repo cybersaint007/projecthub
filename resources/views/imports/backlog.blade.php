@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Import Backlog</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('ui.import_backlog') }}</h2>
             <div class="flex items-center gap-3">
-                <a href="{{ route('imports.json-example') }}" class="px-3 py-2 bg-indigo-50 text-indigo-700 text-sm rounded hover:bg-indigo-100 font-semibold">Download JSON Example</a>
-                <a href="{{ route('projects.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Projects</a>
+                <a href="{{ route('imports.json-example') }}" class="px-3 py-2 bg-indigo-50 text-indigo-700 text-sm rounded hover:bg-indigo-100 font-semibold">{{ __('ui.download_json_example') }}</a>
+                <a href="{{ route('projects.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; {{ __('ui.back_to_projects') }}</a>
             </div>
         </div>
     </x-slot>
@@ -16,26 +16,26 @@
 
                 {{-- Paste JSON --}}
                 <div class="mb-6">
-                    <x-input-label for="json_payload" value="Paste JSON" />
+                    <x-input-label for="json_payload" :value="__('ui.paste_json')" />
                     <textarea
                         id="json_payload"
                         name="json_payload"
                         rows="12"
-                        placeholder="Paste your ProjectHub JSON here..."
+                        placeholder="{{ __('ui.paste_json_placeholder') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm font-mono"
                     >{{ old('json_payload') }}</textarea>
-                    <p class="mt-1 text-sm text-gray-500">Paste a valid JSON payload directly into the textarea above.</p>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('ui.paste_json_hint') }}</p>
                 </div>
 
                 <div class="mb-6 flex items-center gap-2 text-sm text-gray-500">
                     <span class="border-t flex-1"></span>
-                    <span>OR upload a file</span>
+                    <span>{{ __('ui.or_upload_file') }}</span>
                     <span class="border-t flex-1"></span>
                 </div>
 
                 {{-- Upload JSON file --}}
                 <div class="mb-6">
-                    <x-input-label for="file" value="JSON File" />
+                    <x-input-label for="file" :value="__('ui.json_file')" />
                     <input
                         id="file"
                         name="file"
@@ -44,11 +44,11 @@
                         class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                     />
                     <x-input-error :messages="$errors->get('file')" class="mt-2" />
-                    <p class="mt-1 text-sm text-gray-500">Maximum file size: 2MB. File must be a valid JSON file.</p>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('ui.file_max_2mb') }}</p>
                 </div>
 
                 <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                    <strong>Priority rule:</strong> If both textarea and file are provided, the textarea content takes priority.
+                    <strong>{{ __('ui.priority_rule') }}</strong> {{ __('ui.priority_rule_desc') }}
                 </div>
 
                 <div class="mb-6">
@@ -60,13 +60,13 @@
                             class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             {{ old('dry_run') ? 'checked' : '' }}
                         >
-                        <span class="ml-2 text-sm text-gray-700">Dry run (preview only, no changes to database)</span>
+                        <span class="ml-2 text-sm text-gray-700">{{ __('ui.dry_run') }}</span>
                     </label>
                 </div>
 
                 @if ($errors->has('import'))
                     <div class="mb-4 p-4 bg-red-100 border border-red-300 text-red-800 rounded">
-                        <strong>Import Error:</strong> {{ $errors->first('import') }}
+                        <strong>{{ __('ui.import_error') }}</strong> {{ $errors->first('import') }}
                     </div>
                 @endif
 
@@ -80,17 +80,17 @@
 
                         @if ($isDryRun)
                             <div class="mt-2">
-                                <p class="font-medium">Preview:</p>
+                                <p class="font-medium">{{ __('ui.preview') }}</p>
                                 <ul class="list-disc list-inside mt-1 space-y-1">
                                     <li>1 project: {{ $result->projectCode }} - (preview)</li>
                                     <li>{{ $result->epicsCreated }} epic(s)</li>
                                     <li>{{ $result->tasksCreated }} task(s)</li>
                                 </ul>
-                                <p class="mt-2 text-sm italic">No changes were made to the database.</p>
+                                <p class="mt-2 text-sm italic">{{ __('ui.no_changes_made') }}</p>
                             </div>
                         @else
                             <div class="mt-2">
-                                <p class="font-medium">Import Summary:</p>
+                                <p class="font-medium">{{ __('ui.import_summary') }}</p>
                                 <ul class="list-disc list-inside mt-1 space-y-1">
                                     <li>Project: {{ $result->projectCreated ? '1' : '0' }} ({{ $result->projectCode }})</li>
                                     <li>Epics: {{ $result->epicsCreated }}</li>
@@ -100,7 +100,7 @@
                             </div>
                             @if (!empty($result->messages))
                                 <div class="mt-3 pt-3 border-t border-green-200">
-                                    <p class="font-medium text-sm">Details:</p>
+                                    <p class="font-medium text-sm">{{ __('ui.details') }}</p>
                                     <ul class="list-none mt-1 space-y-1 text-sm">
                                         @foreach ($result->messages as $message)
                                             <li>{{ $message }}</li>
@@ -113,16 +113,16 @@
                 @endif
 
                 <div class="flex items-center gap-4">
-                    <x-primary-button>Import</x-primary-button>
+                    <x-primary-button>{{ __('ui.import') }}</x-primary-button>
                     <a href="{{ route('projects.index') }}" class="text-gray-600 hover:text-gray-900">
-                        Cancel
+                        {{ __('ui.cancel') }}
                     </a>
                 </div>
             </form>
         </div>
 
         <div class="mt-6 bg-gray-50 rounded-lg p-4">
-            <h3 class="font-semibold text-gray-800 mb-2">JSON Format Example</h3>
+            <h3 class="font-semibold text-gray-800 mb-2">{{ __('ui.json_format_example') }}</h3>
             <pre class="text-xs bg-white p-3 rounded border overflow-x-auto"><code>{
   "project": {
     "code": "PH-CORE",
@@ -151,7 +151,7 @@
   ]
 }</code></pre>
             <p class="mt-2 text-sm text-gray-600">
-                <strong>Note:</strong> All email addresses must exist in the users table. Project code must be unique.
+                <strong>{{ __('ui.json_note') }}</strong> {{ __('ui.json_note_desc') }}
             </p>
         </div>
     </div>

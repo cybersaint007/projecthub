@@ -9,7 +9,7 @@
     ];
 @endphp
 @if($project->epics->isEmpty())
-    <p class="text-gray-500">No epics yet. Add epics to use Kanban view.</p>
+    <p class="text-gray-500">{{ __('ui.no_epics_kanban') }}</p>
 @else
     <div class="overflow-x-auto pb-4">
         <div id="kanban-columns" class="flex gap-4 min-w-max">
@@ -18,7 +18,7 @@
                     <div class="kanban-column flex-shrink-0 w-80 rounded-lg border bg-gray-50 opacity-60 p-3" data-epic-id="{{ $epic->id }}">
                         <div class="kanban-header flex items-center gap-2 mb-3">
                             <span class="font-semibold text-gray-500 line-through">{{ $epic->title }}</span>
-                            <span class="text-xs bg-red-100 text-red-700 px-1.5 rounded">Deleted</span>
+                            <span class="text-xs bg-red-100 text-red-700 px-1.5 rounded">{{ __('ui.deleted') }}</span>
                         </div>
                         <div class="task-sortable min-h-[120px] space-y-2" data-epic-id="{{ $epic->id }}">
                             @foreach($epic->tasks as $task)

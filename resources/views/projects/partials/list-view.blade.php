@@ -3,7 +3,7 @@
 @endphp
 <div class="space-y-6">
     @if($project->epics->isEmpty())
-        <p class="text-gray-500">No epics yet.</p>
+        <p class="text-gray-500">{{ __('ui.no_epics_yet') }}</p>
     @else
         <div id="epic-sortable" class="space-y-3">
             @foreach($project->epics as $epic)
@@ -12,7 +12,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <span class="font-medium text-gray-400 line-through">{{ $epic->title }}</span>
-                                <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">Deleted</span>
+                                <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">{{ __('ui.deleted') }}</span>
                             </div>
                         </div>
                     </div>
@@ -32,8 +32,8 @@
                                 @endif
                             </div>
                             <div class="flex gap-3 items-center shrink-0">
-                                <a href="{{ route('epics.kanban', $epic) }}" class="text-sm text-indigo-600 hover:underline">Kanban</a>
-                                <span class="text-sm text-gray-400">{{ $epic->tasks->count() }} tasks</span>
+                                <a href="{{ route('epics.kanban', $epic) }}" class="text-sm text-indigo-600 hover:underline">{{ __('ui.kanban') }}</a>
+                                <span class="text-sm text-gray-400">{{ __('ui.tasks_count', ['count' => $epic->tasks->count()]) }}</span>
                             </div>
                         </div>
                         {{-- Tasks for this epic (cross-epic drag supported) --}}
@@ -43,7 +43,7 @@
                                     @if($task->trashed())
                                         <div class="task-row flex items-center gap-2 py-2 text-gray-400 line-through" data-task-id="{{ $task->id }}">
                                             <span class="text-sm">{{ $task->title }}</span>
-                                            <span class="text-xs bg-red-100 text-red-700 px-1.5 rounded">Deleted</span>
+                                            <span class="text-xs bg-red-100 text-red-700 px-1.5 rounded">{{ __('ui.deleted') }}</span>
                                         </div>
                                     @else
                                         <div class="task-row flex items-center gap-2 py-2 hover:bg-gray-50 rounded group" data-task-id="{{ $task->id }}">

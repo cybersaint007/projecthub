@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">Kanban: {{ $epic->title }}</h2>
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('ui.kanban') }}: {{ $epic->title }}</h2>
                 <p class="text-sm text-gray-500">
                     <a href="{{ route('projects.show', $epic->project) }}" class="hover:underline">{{ $epic->project->name }}</a>
                     &rarr;
@@ -10,8 +10,8 @@
                 </p>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('epics.show', $epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Epic</a>
-                <a href="{{ route('tasks.create', $epic) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">New Task</a>
+                <a href="{{ route('epics.show', $epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; {{ __('ui.back_to_epic') }}</a>
+                <a href="{{ route('tasks.create', $epic) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_task') }}</a>
             </div>
         </div>
     </x-slot>

@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->appendToGroup('web', [
+            \App\Http\Middleware\DetectLocale::class,
             \App\Http\Middleware\ForcePasswordReset::class,
         ]);
     })
