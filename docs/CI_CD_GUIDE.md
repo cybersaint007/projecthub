@@ -61,7 +61,7 @@ set -euo pipefail
 PROJECT_DIR="/home/dockeradmin/<project>"
 LOG_FILE="/home/dockeradmin/deploy.log"
 HEALTH_URL="http://localhost:<port>"
-HEALTH_RETRIES=6
+HEALTH_RETRIES=12
 HEALTH_INTERVAL=5
 CONTAINER_NAME="<project>"
 
