@@ -14,7 +14,7 @@ GitHub Actions (CI: test) ──PR──> block merge if tests fail
 GitHub Actions (CD: deploy) ──SSH──> production server
         |
         v
-deploy.sh on server: pull → build → migrate → health check
+deploy.sh on server: pull → build → migrate → geoip update → health check
 ```
 
 Backup mechanism: a cron job polls GitHub every 5 minutes and triggers `deploy.sh` if there are new commits. This ensures deploys happen even if GitHub Actions secrets are not yet configured.
@@ -112,8 +112,32 @@ done
 log "5. Running database migration..."
 docker exec "$CONTAINER_NAME" php artisan migrate --force 2>&1 | tee -a "$LOG_FILE"
 
-# 6. HTTP health check
-log "6. HTTP health check..."
+# 6. Update GeoIP database (reads license key from host .env)
+log "6. Updating GeoIP database..."
+GEOIP_DIR="/var/www/html/storage/app/geoip"
+GEOIP_FILE="$GEOIP_DIR/GeoLite2-Country.mmdb"
+MAXMIND_KEY=$(grep -oP '^MAXMIND_LICENSE_KEY=\K.+' "$PROJECT_DIR/.env" 2>/dev/null | tr -d '[:space:]' || echo "")
+
+if [ -n "$MAXMIND_KEY" ]; then
+    docker exec "$CONTAINER_NAME" mkdir -p "$GEOIP_DIR"
+    TMPFILE="/tmp/geoip-country.tar.gz"
+    curl -sL -o "$TMPFILE" "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=${MAXMIND_KEY}&suffix=tar.gz"
+    if file "$TMPFILE" | grep -q gzip; then
+        EXTRACT_DIR=$(mktemp -d)
+        tar xzf "$TMPFILE" -C "$EXTRACT_DIR"
+        docker cp "$EXTRACT_DIR"/GeoLite2-Country_*/GeoLite2-Country.mmdb "$CONTAINER_NAME:$GEOIP_FILE"
+        rm -rf "$TMPFILE" "$EXTRACT_DIR"
+        log "GeoIP database updated."
+    else
+        log "WARNING: GeoIP download failed (invalid file). Skipping."
+        rm -f "$TMPFILE"
+    fi
+else
+    log "WARNING: MAXMIND_LICENSE_KEY not found in .env. Skipping GeoIP update."
+fi
+
+# 7. HTTP health check
+log "7. HTTP health check..."
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "$HEALTH_URL" || echo "000")
 if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "302" ]; then
     log "Deploy SUCCESS. HTTP status: $HTTP_STATUS"
@@ -282,6 +306,33 @@ cat ~/.ssh/deploy_key.pub >> ~/.ssh/authorized_keys
 ~/bin/gh run rerun <run-id> --repo "$REPO" --failed
 ```
 
+## GeoIP Database (MaxMind GeoLite2)
+
+Projects that use IP-based locale detection need the MaxMind GeoLite2-Country database. The deploy script downloads it automatically on each deploy if `MAXMIND_LICENSE_KEY` is set in the server's `.env`.
+
+### Setup
+
+1. Create a free account at https://www.maxmind.com/en/geolite2/signup
+2. Generate a license key at **Account > Manage License Keys**
+3. Add to the server's `.env` (never commit):
+   ```
+   MAXMIND_LICENSE_KEY=<your-license-key>
+   ```
+
+### How it works
+
+- `deploy.sh` step 6 reads `MAXMIND_LICENSE_KEY` from the host `.env` (not the container's)
+- Downloads `GeoLite2-Country.tar.gz` from MaxMind, extracts the `.mmdb` file
+- Copies it into the container at `/var/www/html/storage/app/geoip/GeoLite2-Country.mmdb` via `docker cp`
+- If the key is missing or the download fails, the step is skipped with a warning
+- The database is refreshed on every deploy, keeping IP data current
+
+### Important notes
+
+- The `.env` is baked into the Docker image at build time (`COPY . .`), but `deploy.sh` reads the key from the **host** `.env` file because the container's copy may not yet have the key
+- The `.mmdb` file lives inside the container filesystem (not the Docker volume), so it persists across restarts but is rebuilt on each deploy
+- MaxMind updates the GeoLite2 database weekly; deploying regularly keeps it fresh
+
 ## .env.example Template (for CI)
 
 ```env
@@ -364,6 +415,7 @@ volumes:
 | Relying on `post-receive` hook | Only fires for bare repo push targets; GitHub remotes bypass it | Use cron polling or GitHub Actions SSH deploy |
 | `docker-compose` (hyphenated) | Deprecated; may not exist on newer Docker installs | Use `docker compose` (space, plugin form) |
 | Committing `.env` to git | Leaks secrets | `.env` in `.gitignore`; use `.env.example` for CI |
+| Reading `.env` vars from inside container for deploy steps | Container `.env` is baked at build time; may be stale | Read from host `$PROJECT_DIR/.env` with `grep` |
 
 ## New Project Checklist
 
