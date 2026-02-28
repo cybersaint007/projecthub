@@ -93,6 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('admin')->prefix('imports')->name('imports.')->group(function () {
         Route::get('/backlog', [BacklogImportController::class, 'show'])->name('backlog.show');
         Route::post('/backlog', [BacklogImportController::class, 'store'])->name('backlog.store');
+        Route::get('/json-example', [BacklogImportController::class, 'downloadExample'])->name('json-example');
     });
 });
 

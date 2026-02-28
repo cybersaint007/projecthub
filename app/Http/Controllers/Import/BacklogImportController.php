@@ -22,23 +22,34 @@ class BacklogImportController extends Controller
      */
     public function store(Request $request, BacklogImportService $service)
     {
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:json,application/json', 'max:2048'],
-            'dry_run' => ['nullable', 'boolean'],
-        ], [
-            'file.required' => 'Please select a JSON file to upload.',
-            'file.mimes' => 'The file must be a JSON file.',
-            'file.max' => 'The file size must not exceed 2MB.',
-        ]);
+        $jsonPayload = trim($request->input('json_payload', ''));
+        $hasPayload = $jsonPayload !== '';
+        $hasFile = $request->hasFile('file');
+
+        if (! $hasPayload && ! $hasFile) {
+            return back()
+                ->withErrors(['import' => 'Please provide JSON via the textarea or upload a JSON file.'])
+                ->withInput();
+        }
+
+        // Validate file only when no textarea payload
+        if (! $hasPayload && $hasFile) {
+            $request->validate([
+                'file' => ['file', 'mimes:json,application/json', 'max:2048'],
+            ], [
+                'file.mimes' => 'The file must be a JSON file.',
+                'file.max' => 'The file size must not exceed 2MB.',
+            ]);
+        }
 
         try {
-            $file = $request->file('file');
+            if ($hasPayload) {
+                $jsonContent = $jsonPayload;
+            } else {
+                $jsonContent = file_get_contents($request->file('file')->getRealPath());
+            }
+
             $dryRun = $request->boolean('dry_run');
-
-            // Read file content
-            $jsonContent = file_get_contents($file->getRealPath());
-
-            // Import using service
             $result = $service->importFromJsonString($jsonContent, $dryRun);
 
             if ($dryRun) {
@@ -61,5 +72,17 @@ class BacklogImportController extends Controller
             return back()->withErrors(['import' => 'An unexpected error occurred: ' . $e->getMessage()])
                 ->withInput();
         }
+    }
+
+    /**
+     * Download the example JSON file
+     */
+    public function downloadExample()
+    {
+        $path = resource_path('examples/projecthub-import-example.json');
+
+        return response()->download($path, 'projecthub-import-example.json', [
+            'Content-Type' => 'application/json',
+        ]);
     }
 }

@@ -1,0 +1,40 @@
+{
+  "project": {
+    "code": "PROJECTHUB-EXAMPLE",
+    "name": "ProjectHub Import Example Project",
+    "description": "This is a minimal example payload for ProjectHub JSON import (project + epics + tasks).",
+    "owner_email": "james.lee@fincosoft.com"
+  },
+  "epics": [
+    {
+      "title": "Getting Started",
+      "description": "Example epic for demonstrating the import structure.",
+      "owner_email": "james.lee@fincosoft.com",
+      "tasks": [
+        {
+          "title": "Review imported project structure",
+          "assignee_email": "james.lee@fincosoft.com"
+        },
+        {
+          "title": "Try drag-sort in List / Kanban view",
+          "assignee_email": "james.lee@fincosoft.com"
+        }
+      ]
+    },
+    {
+      "title": "Security & Multi-tenant (Example)",
+      "description": "Sample tasks showing how to organize security-related work items.",
+      "owner_email": "james.lee@fincosoft.com",
+      "tasks": [
+        {
+          "title": "Add request logging context (tenant_id, correlation_id)",
+          "assignee_email": "james.lee@fincosoft.com"
+        },
+        {
+          "title": "Validate return_to against allowed origins",
+          "assignee_email": "james.lee@fincosoft.com"
+        }
+      ]
+    }
+  ]
+}

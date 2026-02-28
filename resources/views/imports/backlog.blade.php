@@ -2,7 +2,10 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Import Backlog</h2>
-            <a href="{{ route('projects.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Projects</a>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('imports.json-example') }}" class="px-3 py-2 bg-indigo-50 text-indigo-700 text-sm rounded hover:bg-indigo-100 font-semibold">Download JSON Example</a>
+                <a href="{{ route('projects.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Projects</a>
+            </div>
         </div>
     </x-slot>
 
@@ -11,25 +14,48 @@
             <form method="POST" action="{{ route('imports.backlog.store') }}" enctype="multipart/form-data">
                 @csrf
 
+                {{-- Paste JSON --}}
+                <div class="mb-6">
+                    <x-input-label for="json_payload" value="Paste JSON" />
+                    <textarea
+                        id="json_payload"
+                        name="json_payload"
+                        rows="12"
+                        placeholder="Paste your ProjectHub JSON here..."
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm font-mono"
+                    >{{ old('json_payload') }}</textarea>
+                    <p class="mt-1 text-sm text-gray-500">Paste a valid JSON payload directly into the textarea above.</p>
+                </div>
+
+                <div class="mb-6 flex items-center gap-2 text-sm text-gray-500">
+                    <span class="border-t flex-1"></span>
+                    <span>OR upload a file</span>
+                    <span class="border-t flex-1"></span>
+                </div>
+
+                {{-- Upload JSON file --}}
                 <div class="mb-6">
                     <x-input-label for="file" value="JSON File" />
-                    <input 
-                        id="file" 
-                        name="file" 
-                        type="file" 
+                    <input
+                        id="file"
+                        name="file"
+                        type="file"
                         accept=".json,application/json"
                         class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                        required 
                     />
                     <x-input-error :messages="$errors->get('file')" class="mt-2" />
                     <p class="mt-1 text-sm text-gray-500">Maximum file size: 2MB. File must be a valid JSON file.</p>
                 </div>
 
+                <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                    <strong>Priority rule:</strong> If both textarea and file are provided, the textarea content takes priority.
+                </div>
+
                 <div class="mb-6">
                     <label class="flex items-center">
-                        <input 
-                            type="checkbox" 
-                            name="dry_run" 
+                        <input
+                            type="checkbox"
+                            name="dry_run"
                             value="1"
                             class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             {{ old('dry_run') ? 'checked' : '' }}
@@ -51,7 +77,7 @@
                     @endphp
                     <div class="mb-4 p-4 {{ $isDryRun ? 'bg-blue-100 border-blue-300 text-blue-800' : 'bg-green-100 border-green-300 text-green-800' }} rounded">
                         <div class="font-semibold mb-2">{{ session('status') }}</div>
-                        
+
                         @if ($isDryRun)
                             <div class="mt-2">
                                 <p class="font-medium">Preview:</p>
