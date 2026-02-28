@@ -4,7 +4,7 @@ set -euo pipefail
 PROJECT_DIR="/home/dockeradmin/projecthub"
 LOG_FILE="/home/dockeradmin/deploy.log"
 HEALTH_URL="http://localhost:18080"
-HEALTH_RETRIES=6
+HEALTH_RETRIES=12
 HEALTH_INTERVAL=5
 CONTAINER_NAME="projecthub"
 
@@ -55,8 +55,32 @@ done
 log "5. Running database migration..."
 docker exec "$CONTAINER_NAME" php artisan migrate --force 2>&1 | tee -a "$LOG_FILE"
 
-# 6. HTTP health check
-log "6. HTTP health check..."
+# 6. Update GeoIP database (reads license key from host .env)
+log "6. Updating GeoIP database..."
+GEOIP_DIR="/var/www/html/storage/app/geoip"
+GEOIP_FILE="$GEOIP_DIR/GeoLite2-Country.mmdb"
+MAXMIND_KEY=$(grep -oP '^MAXMIND_LICENSE_KEY=\K.+' "$PROJECT_DIR/.env" 2>/dev/null | tr -d '[:space:]' || echo "")
+
+if [ -n "$MAXMIND_KEY" ]; then
+    docker exec "$CONTAINER_NAME" mkdir -p "$GEOIP_DIR"
+    TMPFILE="/tmp/geoip-country.tar.gz"
+    curl -sL -o "$TMPFILE" "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=${MAXMIND_KEY}&suffix=tar.gz"
+    if file "$TMPFILE" | grep -q gzip; then
+        EXTRACT_DIR=$(mktemp -d)
+        tar xzf "$TMPFILE" -C "$EXTRACT_DIR"
+        docker cp "$EXTRACT_DIR"/GeoLite2-Country_*/GeoLite2-Country.mmdb "$CONTAINER_NAME:$GEOIP_FILE"
+        rm -rf "$TMPFILE" "$EXTRACT_DIR"
+        log "GeoIP database updated."
+    else
+        log "WARNING: GeoIP download failed (invalid file). Skipping."
+        rm -f "$TMPFILE"
+    fi
+else
+    log "WARNING: MAXMIND_LICENSE_KEY not found in .env. Skipping GeoIP update."
+fi
+
+# 7. HTTP health check
+log "7. HTTP health check..."
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "$HEALTH_URL" || echo "000")
 if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "302" ]; then
     log "Deploy SUCCESS. HTTP status: $HTTP_STATUS"
