@@ -210,9 +210,9 @@ class BacklogImportService
                             'epic_id' => $epic->id,
                             'title' => $taskData['title'],
                             'description' => $taskData['description'] ?? null,
-                            'status' => 'Backlog', // Default status
-                            'priority' => 'medium', // Default priority
-                            'agent' => 'human', // Default agent
+                            'status' => 'Backlog',
+                            'priority' => Task::PRIORITY_MEDIUM,
+                            'agent' => 'human',
                             'assignee_id' => $assignee?->id,
                         ]);
 
