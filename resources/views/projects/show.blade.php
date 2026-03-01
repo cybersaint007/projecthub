@@ -25,6 +25,10 @@
                     @endif
                 @else
                     <a href="{{ route('project-files.index', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">{{ __('ui.files') }}</a>
+                    <a href="{{ route('backlog.export-json', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">Export JSON</a>
+                    @if(($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin())
+                        <a href="{{ route('backlog.import-replace', $project) }}" class="px-3 py-2 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700">Import/Replace</a>
+                    @endif
                     @if(($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin())
                         <a href="{{ route('epics.create', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_epic') }}</a>
                     @endif

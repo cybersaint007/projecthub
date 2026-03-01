@@ -25,6 +25,10 @@ class Task extends Model
         'instructions',
         'acceptance_criteria',
         'assignee_id',
+        'leased_by',
+        'lease_token',
+        'leased_until',
+        'claimed_at',
     ];
 
     protected $attributes = [
@@ -37,6 +41,8 @@ class Task extends Model
         return [
             'tags' => 'array',
             'priority' => 'integer',
+            'leased_until' => 'datetime',
+            'claimed_at' => 'datetime',
         ];
     }
 
@@ -79,5 +85,28 @@ class Task extends Model
     public function taskLogs(): HasMany
     {
         return $this->hasMany(TaskLog::class)->orderByDesc('created_at');
+    }
+
+    public function hasActiveLease(): bool
+    {
+        return $this->leased_until !== null && $this->leased_until->isFuture();
+    }
+
+    public function clearLease(): void
+    {
+        $this->update([
+            'leased_by' => null,
+            'lease_token' => null,
+            'leased_until' => null,
+        ]);
+    }
+
+    /** User-editable fields for export (excludes epic_id which is structural). */
+    public static function exportableFields(): array
+    {
+        return [
+            'position', 'title', 'description', 'status', 'agent', 'priority',
+            'tags', 'context', 'instructions', 'acceptance_criteria',
+        ];
     }
 }
