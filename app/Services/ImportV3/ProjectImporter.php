@@ -207,7 +207,9 @@ class ProjectImporter
         if (isset($d['position']))            $task->position            = (int) $d['position'];
         if (isset($d['context']))             $task->context             = $d['context'];
         if (isset($d['instructions']))        $task->instructions        = $d['instructions'];
-        if (isset($d['acceptance_criteria'])) $task->acceptance_criteria = $d['acceptance_criteria'];
+        if (isset($d['acceptance_criteria'])) $task->acceptance_criteria = is_array($d['acceptance_criteria'])
+            ? implode("\n", $d['acceptance_criteria'])
+            : $d['acceptance_criteria'];
         if (isset($d['tags']))                $task->tags                = $d['tags']; // cast: array
         if (isset($d['priority']))            $task->priority            = $this->normalizePriority($d['priority']);
 
@@ -215,7 +217,15 @@ class ProjectImporter
         if (isset($d['external_key']))   $task->external_key   = $d['external_key'];
         if (isset($d['stage']))          $task->stage          = $d['stage'];
         if (isset($d['execution_mode'])) $task->execution_mode = $d['execution_mode'];
-        if (isset($d['estimate']))       $task->estimate_size  = $d['estimate'];
+        if (isset($d['estimate'])) {
+            $estimate = $d['estimate'];
+            if (is_array($estimate)) {
+                $task->estimate_size  = $estimate['size'] ?? null;
+                $task->estimate_hours = isset($estimate['hours']) ? (float) $estimate['hours'] : null;
+            } else {
+                $task->estimate_size = $estimate;
+            }
+        }
         if (isset($d['estimate_hours'])) $task->estimate_hours = (float) $d['estimate_hours'];
         if (isset($d['custom_fields']))  $task->custom_fields  = $this->encodeJson($d['custom_fields']);
         if (isset($d['artifacts']))      $task->artifact_refs  = $this->encodeJson($d['artifacts']);
