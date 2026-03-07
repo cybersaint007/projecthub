@@ -24,13 +24,13 @@
         @if($projects->isEmpty())
             <p class="p-6 text-gray-500">{{ __('ui.no_projects_found') }}</p>
         @else
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full divide-y divide-gray-200 table-fixed">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('ui.name') }}</th>
+                        <th class="w-64 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('ui.name') }}</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('ui.description') }}</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('ui.epics') }}</th>
-                        <th class="px-6 py-3"></th>
+                        <th class="w-16 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{{ __('ui.epics') }}</th>
+                        <th class="w-40 px-6 py-3"></th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="projectsTableBody">
@@ -39,9 +39,9 @@
                             class="project-row {{ $project->trashed() ? 'trashed-project bg-gray-50 opacity-75' : '' }}"
                             data-trashed="{{ $project->trashed() ? '1' : '0' }}"
                         >
-                            <td class="px-6 py-4 whitespace-nowrap font-medium">
+                            <td class="w-64 px-6 py-4 font-medium">
                                 <div class="flex flex-col gap-1">
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-2 flex-wrap">
                                         <a href="{{ route('projects.show', $project) }}" class="text-indigo-600 hover:underline {{ $project->trashed() ? 'line-through' : '' }}">{{ $project->name }}</a>
                                         @if($project->trashed())
                                             <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">{{ __('ui.deleted') }}</span>
@@ -50,8 +50,8 @@
                                     @include('projects.partials.access-badges', ['project' => $project, 'user' => auth()->user()])
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-500">{{ Str::limit($project->description, 60) }}</td>
-                            <td class="px-6 py-4 text-sm">{{ $project->epics_count }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{ Str::limit($project->description, 80) }}</td>
+                            <td class="w-16 px-4 py-4 text-sm">{{ $project->epics_count }}</td>
                             <td class="px-6 py-4 text-right text-sm">
                                 @if(!$project->trashed())
                                     <a href="{{ route('project-files.index', $project) }}" class="text-gray-600 hover:text-gray-900 mr-3">{{ __('ui.files') }}</a>
