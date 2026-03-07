@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -11,9 +12,9 @@ class DashboardController extends Controller
         $user = $request->user();
 
         if ($user->isAdmin()) {
-            $projects = \App\Models\Project::withCount(['epics', 'users'])->get();
+            $projects = Project::withCount(['epics', 'users'])->get();
         } else {
-            $projects = $user->projects()->withCount('epics')->get();
+            $projects = Project::accessibleTo($user)->withCount('epics')->get();
         }
 
         return view('dashboard', compact('projects'));
