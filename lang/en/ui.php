@@ -249,6 +249,7 @@ return [
     'priority_rule_desc'    => 'If both textarea and file are provided, the textarea content takes priority.',
     'dry_run'               => 'Dry run (preview only, no changes to database)',
     'import'                => 'Import',
+    'export'                => 'Export',
     'import_error'          => 'Import Error:',
     'preview'               => 'Preview:',
     'import_summary'        => 'Import Summary:',

@@ -249,6 +249,7 @@ return [
     'priority_rule_desc'    => '若同時提供文字區域和檔案，文字區域的內容優先。',
     'dry_run'               => '試跑（僅預覽，不變更資料庫）',
     'import'                => '匯入',
+    'export'                => '匯出',
     'import_error'          => '匯入錯誤：',
     'preview'               => '預覽：',
     'import_summary'        => '匯入摘要：',

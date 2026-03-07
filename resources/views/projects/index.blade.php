@@ -14,7 +14,7 @@
                         <span class="ml-2 text-sm text-gray-700">{{ __('ui.show_deleted_projects') }}</span>
                     </label>
                 @endif
-                <a href="{{ route('backlog.import-v3.global') }}" class="px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700">Import</a>
+                <a href="{{ route('backlog.import-v3.global') }}" class="px-4 py-2 bg-amber-500 text-white text-sm rounded hover:bg-amber-600">{{ __('ui.import') }}</a>
                 <a href="{{ route('projects.create') }}" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_project') }}</a>
             </div>
         </div>
