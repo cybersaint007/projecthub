@@ -108,7 +108,7 @@ class ProjectExporter
             'position'            => $task->position,
             'estimate'            => $task->estimate_size,       // DB: estimate_size → export: estimate
             'execution_mode'      => $task->execution_mode,
-            'assignee'            => $task->assignee_value,      // DB: assignee_value → export: assignee
+            'assignee'            => $this->decodeJson($task->assignee_value), // string or array
             'assignee_type'       => $task->assignee_type,
             'tags'                => $task->tags,                // already decoded (model cast)
             'context'             => $task->context,

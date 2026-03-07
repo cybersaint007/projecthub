@@ -221,15 +221,17 @@ class ProjectImporter
         if (isset($d['artifacts']))      $task->artifacts      = $this->encodeJson($d['artifacts']);
         if (isset($d['review']))         $task->review_metadata = $this->encodeJson($d['review']);
 
-        // Assignee — must be a scalar; skip gracefully if the field is an array/object
-        if (isset($d['assignee']) && is_string($d['assignee'])) {
-            $task->assignee_value = $d['assignee'];
+        // Assignee — string or array (future multi-agent support).
+        // Arrays are JSON-encoded into the assignee_value string column.
+        if (isset($d['assignee'])) {
+            $assignee     = $d['assignee'];
             $assigneeType = $d['assignee_type'] ?? null;
-            $task->assignee_type = $assigneeType;
+            $task->assignee_value = is_array($assignee) ? json_encode($assignee) : $assignee;
+            $task->assignee_type  = $assigneeType;
 
-            // If human (or unspecified), try to resolve to assignee_id
-            if (!$assigneeType || $assigneeType === 'human') {
-                $user = $this->resolveUser($d['assignee']);
+            // Only attempt user resolution for a single string value
+            if (is_string($assignee) && (!$assigneeType || $assigneeType === 'human')) {
+                $user = $this->resolveUser($assignee);
                 if ($user) {
                     $task->assignee_id   = $user->id;
                     $task->assignee_type = 'human';
