@@ -26,7 +26,7 @@
     {{-- Console: menu + panel --}}
     <div class="mt-4 flex bg-white shadow-sm sm:rounded-lg overflow-hidden"
          style="min-height: 640px;"
-         x-data="{ active: 'prompts' }">
+         x-data="{ active: (location.hash ? location.hash.slice(1) : 'prompts') }">
 
         {{-- ── Left navigation menu ─────────────────────────────────────── --}}
         <nav class="w-44 flex-shrink-0 border-r bg-gray-50 flex flex-col py-2">

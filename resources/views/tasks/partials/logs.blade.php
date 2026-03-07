@@ -7,7 +7,7 @@
         @csrf
         <input type="hidden" name="log_type" value="manual" />
         <div class="space-y-2">
-            <textarea name="content" rows="2"
+            <textarea name="content" rows="10"
                 class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500"
                 placeholder="{{ __('ui.add_log_placeholder') }}" required></textarea>
             <x-input-error :messages="$errors->get('content')" class="mt-1" />
@@ -41,7 +41,7 @@
                             <form method="POST" action="{{ route('task-logs.update', $log) }}" class="space-y-2">
                                 @csrf
                                 @method('PATCH')
-                                <textarea name="content" rows="3"
+                                <textarea name="content" rows="10"
                                     class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500"
                                     required>{{ old('content', $log->content) }}</textarea>
                                 <div class="flex items-center gap-2">

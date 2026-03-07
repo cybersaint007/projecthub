@@ -22,7 +22,7 @@ class TaskLogController extends Controller
             'user_id' => $request->user()?->id,
         ]);
 
-        return back()->with('status', 'Work log added.');
+        return redirect(route('tasks.show', $task) . '#logs')->with('status', 'Work log added.');
     }
 
     public function update(Request $request, TaskLog $taskLog)
@@ -35,7 +35,7 @@ class TaskLogController extends Controller
 
         $taskLog->update($data);
 
-        return back()->with('status', 'Work log updated.');
+        return redirect(route('tasks.show', $taskLog->task) . '#logs')->with('status', 'Work log updated.');
     }
 
     private function authorizeEpic($user, $epic): void
