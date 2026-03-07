@@ -6,6 +6,9 @@ use App\Models\Project;
 use App\Services\BacklogExportService;
 use App\Services\BacklogMergeService;
 use App\Services\BacklogReplaceService;
+use App\Services\ExportV3\ProjectExporter;
+use App\Services\ImportV3\ProjectImporter;
+use App\Services\ImportV3\SchemaValidator;
 use Illuminate\Http\Request;
 
 class BacklogController extends Controller
@@ -141,6 +144,65 @@ class BacklogController extends Controller
             ->with('status', "Backlog merged: {$result['epics_added']} epics added, {$result['epics_updated']} updated, "
                 . "{$result['tasks_added']} tasks added, {$result['tasks_updated']} updated."
                 . ($result['prompts_added'] ? " {$result['prompts_added']} prompts added." : ''));
+    }
+
+    // -------------------------------------------------------------------------
+    // V3 Export / Import
+    // -------------------------------------------------------------------------
+
+    public function exportV3Json(Request $request, Project $project, ProjectExporter $exporter)
+    {
+        $this->authorizeProject($request->user(), $project);
+
+        $data     = $exporter->export($project);
+        $filename = ($project->code ?: 'project') . '_v3_' . now()->format('Ymd_Hi') . '.json';
+
+        return response(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
+            ->header('Content-Type', 'application/json');
+    }
+
+    public function importV3Form(Request $request, Project $project)
+    {
+        $this->authorizeProject($request->user(), $project);
+
+        return view('backlog.import-v3', compact('project'));
+    }
+
+    public function importV3Apply(Request $request, Project $project, ProjectImporter $importer)
+    {
+        $this->authorizeProject($request->user(), $project);
+
+        $json = $this->extractJson($request);
+        if ($json === null) {
+            return back()->withErrors(['import' => 'Provide valid JSON via paste or file upload.']);
+        }
+
+        $data = json_decode($json, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return back()->withErrors(['import' => 'Invalid JSON: ' . json_last_error_msg()]);
+        }
+
+        $validator = new SchemaValidator();
+        if (!$validator->validate($data)) {
+            return back()->withErrors(['import' => implode(' | ', $validator->errors())]);
+        }
+
+        $result = $importer->import($data);
+
+        $summary = sprintf(
+            'V3 import complete — project %s, %d epic(s) created / %d updated, %d task(s) created / %d updated, %d prompt(s) created / %d updated.',
+            $result->projectCreated ? 'created' : 'updated',
+            $result->epicsCreated, $result->epicsUpdated,
+            $result->tasksCreated, $result->tasksUpdated,
+            $result->promptsCreated, $result->promptsUpdated,
+        );
+
+        if (!empty($result->dependencyWarnings)) {
+            $summary .= ' Warnings: ' . implode('; ', $result->dependencyWarnings);
+        }
+
+        return redirect()->route('projects.show', $project)->with('status', $summary);
     }
 
     private function extractJson(Request $request): ?string

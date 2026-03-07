@@ -84,6 +84,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/projects/{project}/backlog/import-replace/apply', [BacklogController::class, 'importReplaceApply'])->name('backlog.import-replace.apply');
     Route::post('/projects/{project}/backlog/import-merge/preview', [BacklogController::class, 'importMergePreview'])->name('backlog.import-merge.preview');
     Route::post('/projects/{project}/backlog/import-merge/apply', [BacklogController::class, 'importMergeApply'])->name('backlog.import-merge.apply');
+    Route::get('/projects/{project}/backlog/export-v3', [BacklogController::class, 'exportV3Json'])->name('backlog.export-v3');
+    Route::get('/projects/{project}/backlog/import-v3', [BacklogController::class, 'importV3Form'])->name('backlog.import-v3');
+    Route::post('/projects/{project}/backlog/import-v3', [BacklogController::class, 'importV3Apply'])->name('backlog.import-v3.apply');
 
     // Project Files
     Route::get('/projects/{project}/files', [ProjectFileController::class, 'index'])->name('project-files.index');
