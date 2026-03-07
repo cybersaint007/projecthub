@@ -218,7 +218,7 @@ class ProjectImporter
         if (isset($d['estimate']))       $task->estimate_size  = $d['estimate'];
         if (isset($d['estimate_hours'])) $task->estimate_hours = (float) $d['estimate_hours'];
         if (isset($d['custom_fields']))  $task->custom_fields  = $this->encodeJson($d['custom_fields']);
-        if (isset($d['artifacts']))      $task->artifacts      = $this->encodeJson($d['artifacts']);
+        if (isset($d['artifacts']))      $task->artifact_refs  = $this->encodeJson($d['artifacts']);
         if (isset($d['review']))         $task->review_metadata = $this->encodeJson($d['review']);
 
         // Assignee — string or array (future multi-agent support).

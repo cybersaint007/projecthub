@@ -117,7 +117,7 @@ class ProjectExporter
             'dependencies'        => $this->decodeJson($task->getRawOriginal('dependencies')),
             'blocking'            => $this->decodeJson($task->getRawOriginal('blocking')),
             'review'              => $this->decodeJson($task->getRawOriginal('review_metadata')), // DB: review_metadata → export: review
-            'artifacts'           => $this->decodeJson($task->getRawOriginal('artifacts')),
+            'artifacts'           => $this->decodeJson($task->getRawOriginal('artifact_refs')),
             'custom_fields'       => $this->decodeJson($task->getRawOriginal('custom_fields')),
         ]);
 

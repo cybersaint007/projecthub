@@ -29,6 +29,7 @@ class Task extends Model
         'lease_token',
         'leased_until',
         'claimed_at',
+        'artifact_refs',
     ];
 
     protected $attributes = [
