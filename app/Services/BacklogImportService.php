@@ -37,6 +37,11 @@ class BacklogImportService
             throw new BacklogImportException('Invalid JSON: ' . json_last_error_msg());
         }
 
+        // Validate version if present
+        if (isset($data['version']) && $data['version'] !== BacklogExportService::VERSION) {
+            throw new BacklogImportException("Unsupported format version '{$data['version']}'. Expected '" . BacklogExportService::VERSION . "'.");
+        }
+
         // Validate JSON structure
         if (!isset($data['project']) || !isset($data['epics'])) {
             throw new BacklogImportException('Invalid JSON structure: missing "project" or "epics"');

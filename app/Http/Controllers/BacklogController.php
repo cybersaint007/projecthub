@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Services\BacklogExportService;
+use App\Services\BacklogMergeService;
 use App\Services\BacklogReplaceService;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class BacklogController extends Controller
         $data = $exportService->export($project);
         $filename = ($project->code ?: 'project') . '_backlog_' . now()->format('Ymd_Hi') . '.json';
 
-        return response()->json($data)
+        return response(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
             ->header('Content-Type', 'application/json');
     }
@@ -88,6 +89,60 @@ class BacklogController extends Controller
         return view('backlog.import-replace', compact('project'));
     }
 
+    public function importMergePreview(Request $request, Project $project, BacklogMergeService $mergeService)
+    {
+        $this->authorizeProject($request->user(), $project);
+
+        $json = $this->extractJson($request);
+        if ($json === null) {
+            return back()->withErrors(['import' => 'Provide valid JSON via paste or file upload.']);
+        }
+
+        $data = json_decode($json, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return back()->withErrors(['import' => 'Invalid JSON: ' . json_last_error_msg()]);
+        }
+
+        $validation = $this->validateImportData($data);
+        if ($validation !== null) {
+            return back()->withErrors(['import' => $validation]);
+        }
+
+        $preview = $mergeService->preview($project, $data);
+
+        return back()
+            ->with('merge_preview', $preview)
+            ->with('import_json', $json)
+            ->withInput();
+    }
+
+    public function importMergeApply(Request $request, Project $project, BacklogMergeService $mergeService)
+    {
+        $this->authorizeProject($request->user(), $project);
+
+        $json = $request->input('confirmed_json');
+        if (!$json) {
+            return back()->withErrors(['import' => 'No JSON data to apply.']);
+        }
+
+        $data = json_decode($json, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return back()->withErrors(['import' => 'Invalid JSON.']);
+        }
+
+        $validation = $this->validateImportData($data);
+        if ($validation !== null) {
+            return back()->withErrors(['import' => $validation]);
+        }
+
+        $result = $mergeService->merge($project, $data, $request->user()->id);
+
+        return redirect()->route('projects.show', $project)
+            ->with('status', "Backlog merged: {$result['epics_added']} epics added, {$result['epics_updated']} updated, "
+                . "{$result['tasks_added']} tasks added, {$result['tasks_updated']} updated."
+                . ($result['prompts_added'] ? " {$result['prompts_added']} prompts added." : ''));
+    }
+
     private function extractJson(Request $request): ?string
     {
         if ($request->hasFile('file')) {
@@ -106,6 +161,10 @@ class BacklogController extends Controller
 
     private function validateImportData(array $data): ?string
     {
+        if (isset($data['version']) && $data['version'] !== BacklogExportService::VERSION) {
+            return "Unsupported format version '{$data['version']}'. Expected '" . BacklogExportService::VERSION . "'.";
+        }
+
         if (!isset($data['epics']) || !is_array($data['epics'])) {
             return 'JSON must contain an "epics" array.';
         }

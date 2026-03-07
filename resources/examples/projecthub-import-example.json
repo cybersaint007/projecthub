@@ -1,4 +1,6 @@
 {
+  "version": "2.0",
+  "exported_at": "2026-01-01T00:00:00+00:00",
   "project": {
     "code": "PROJECTHUB-EXAMPLE",
     "name": "ProjectHub Import Example Project",

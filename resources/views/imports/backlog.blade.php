@@ -124,6 +124,8 @@
         <div class="mt-6 bg-gray-50 rounded-lg p-4">
             <h3 class="font-semibold text-gray-800 mb-2">{{ __('ui.json_format_example') }}</h3>
             <pre class="text-xs bg-white p-3 rounded border overflow-x-auto"><code>{
+  "version": "2.0",
+  "exported_at": "2026-01-01T00:00:00+00:00",
   "project": {
     "code": "PH-CORE",
     "name": "ProjectHub Core Build",

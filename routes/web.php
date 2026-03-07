@@ -77,11 +77,13 @@ Route::middleware('auth')->group(function () {
     // Task Reviews
     Route::post('/tasks/{task}/reviews', [TaskReviewController::class, 'store'])->name('reviews.store');
 
-    // Backlog Export/Import Replace
+    // Backlog Export/Import
     Route::get('/projects/{project}/backlog/export-json', [BacklogController::class, 'exportJson'])->name('backlog.export-json');
     Route::get('/projects/{project}/backlog/import-replace', [BacklogController::class, 'importReplaceForm'])->name('backlog.import-replace');
     Route::post('/projects/{project}/backlog/import-replace/preview', [BacklogController::class, 'importReplacePreview'])->name('backlog.import-replace.preview');
     Route::post('/projects/{project}/backlog/import-replace/apply', [BacklogController::class, 'importReplaceApply'])->name('backlog.import-replace.apply');
+    Route::post('/projects/{project}/backlog/import-merge/preview', [BacklogController::class, 'importMergePreview'])->name('backlog.import-merge.preview');
+    Route::post('/projects/{project}/backlog/import-merge/apply', [BacklogController::class, 'importMergeApply'])->name('backlog.import-merge.apply');
 
     // Project Files
     Route::get('/projects/{project}/files', [ProjectFileController::class, 'index'])->name('project-files.index');

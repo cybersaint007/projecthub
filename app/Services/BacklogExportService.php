@@ -7,6 +7,8 @@ use App\Models\Task;
 
 class BacklogExportService
 {
+    public const VERSION = '2.0';
+
     public function export(Project $project): array
     {
         $project->load([
@@ -16,7 +18,7 @@ class BacklogExportService
         ]);
 
         return [
-            'version' => '2.0',
+            'version' => self::VERSION,
             'exported_at' => now()->toIso8601String(),
             'project' => [
                 'code' => $project->code,
@@ -31,7 +33,7 @@ class BacklogExportService
     {
         $epicFields = ['title', 'description', 'milestone_tag', 'position'];
 
-        $data = [];
+        $data = ['id' => $epic->id];
         foreach ($epicFields as $field) {
             $data[$field] = $epic->{$field};
         }
@@ -43,7 +45,7 @@ class BacklogExportService
 
     private function exportTask($task): array
     {
-        $data = [];
+        $data = ['id' => $task->id];
 
         foreach (Task::exportableFields() as $field) {
             $data[$field] = $task->{$field};
