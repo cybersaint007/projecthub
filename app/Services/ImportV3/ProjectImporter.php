@@ -221,13 +221,13 @@ class ProjectImporter
         if (isset($d['artifacts']))      $task->artifacts      = $this->encodeJson($d['artifacts']);
         if (isset($d['review']))         $task->review_metadata = $this->encodeJson($d['review']);
 
-        // Assignee
-        if (isset($d['assignee'])) {
+        // Assignee — must be a scalar; skip gracefully if the field is an array/object
+        if (isset($d['assignee']) && is_string($d['assignee'])) {
             $task->assignee_value = $d['assignee'];
             $assigneeType = $d['assignee_type'] ?? null;
             $task->assignee_type = $assigneeType;
 
-            // If human, try to resolve to assignee_id
+            // If human (or unspecified), try to resolve to assignee_id
             if (!$assigneeType || $assigneeType === 'human') {
                 $user = $this->resolveUser($d['assignee']);
                 if ($user) {
