@@ -104,7 +104,7 @@ class ProjectExporter
             'description'         => $task->description,
             'status'              => $task->status,
             'stage'               => $task->stage,
-            'priority'            => $task->priority,
+            'priority'            => $this->normalizeTaskPriority($task->priority),
             'position'            => $task->position,
             'estimate'            => $task->estimate_size,       // DB: estimate_size → export: estimate
             'execution_mode'      => $task->execution_mode,
@@ -172,6 +172,20 @@ class ProjectExporter
                 ->pluck('email', 'id')
                 ->toArray();
         }
+    }
+
+    /**
+     * Normalize task priority to valid constants (1/3/5) for clean export.
+     * Any value ≤1 → 1 (low), ≥5 → 5 (high), anything else → 3 (medium).
+     */
+    private function normalizeTaskPriority(?int $priority): ?int
+    {
+        if ($priority === null) return null;
+        if ($priority <= Task::PRIORITY_LOW)  return Task::PRIORITY_LOW;
+        if ($priority >= Task::PRIORITY_HIGH) return Task::PRIORITY_HIGH;
+        if ($priority === Task::PRIORITY_MEDIUM) return Task::PRIORITY_MEDIUM;
+        // 2 → low, 4 → high (nearest valid constant)
+        return $priority < 3 ? Task::PRIORITY_LOW : Task::PRIORITY_HIGH;
     }
 
     /**
