@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EpicController;
-use App\Http\Controllers\Import\BacklogImportController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectFileController;
@@ -77,16 +76,12 @@ Route::middleware('auth')->group(function () {
     // Task Reviews
     Route::post('/tasks/{task}/reviews', [TaskReviewController::class, 'store'])->name('reviews.store');
 
-    // Backlog Export/Import
-    Route::get('/projects/{project}/backlog/export-json', [BacklogController::class, 'exportJson'])->name('backlog.export-json');
-    Route::get('/projects/{project}/backlog/import-replace', [BacklogController::class, 'importReplaceForm'])->name('backlog.import-replace');
-    Route::post('/projects/{project}/backlog/import-replace/preview', [BacklogController::class, 'importReplacePreview'])->name('backlog.import-replace.preview');
-    Route::post('/projects/{project}/backlog/import-replace/apply', [BacklogController::class, 'importReplaceApply'])->name('backlog.import-replace.apply');
-    Route::post('/projects/{project}/backlog/import-merge/preview', [BacklogController::class, 'importMergePreview'])->name('backlog.import-merge.preview');
-    Route::post('/projects/{project}/backlog/import-merge/apply', [BacklogController::class, 'importMergeApply'])->name('backlog.import-merge.apply');
+    // Backlog Export/Import (V3 canonical)
     Route::get('/projects/{project}/backlog/export-v3', [BacklogController::class, 'exportV3Json'])->name('backlog.export-v3');
     Route::get('/projects/{project}/backlog/import-v3', [BacklogController::class, 'importV3Form'])->name('backlog.import-v3');
     Route::post('/projects/{project}/backlog/import-v3', [BacklogController::class, 'importV3Apply'])->name('backlog.import-v3.apply');
+    Route::get('/import-v3', [BacklogController::class, 'importV3GlobalForm'])->name('backlog.import-v3.global');
+    Route::post('/import-v3', [BacklogController::class, 'importV3GlobalApply'])->name('backlog.import-v3.global.apply');
 
     // Project Files
     Route::get('/projects/{project}/files', [ProjectFileController::class, 'index'])->name('project-files.index');
@@ -101,12 +96,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/users/{user}/sync-projects', [AdminUserController::class, 'syncProjects'])->name('users.sync-projects');
     });
 
-    // Import routes (admin only)
-    Route::middleware('admin')->prefix('imports')->name('imports.')->group(function () {
-        Route::get('/backlog', [BacklogImportController::class, 'show'])->name('backlog.show');
-        Route::post('/backlog', [BacklogImportController::class, 'store'])->name('backlog.store');
-        Route::get('/json-example', [BacklogImportController::class, 'downloadExample'])->name('json-example');
-    });
 });
 
 require __DIR__.'/auth.php';

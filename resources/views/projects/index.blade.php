@@ -2,8 +2,8 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('ui.projects') }}</h2>
-            @if(Auth::user()->isAdmin())
-                <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
+                @if(Auth::user()->isAdmin())
                     <label class="flex items-center cursor-pointer">
                         <input
                             type="checkbox"
@@ -13,11 +13,10 @@
                         >
                         <span class="ml-2 text-sm text-gray-700">{{ __('ui.show_deleted_projects') }}</span>
                     </label>
-                    <a href="{{ route('projects.create') }}" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_project') }}</a>
-                </div>
-            @else
+                @endif
+                <a href="{{ route('backlog.import-v3.global') }}" class="px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700">Import V3</a>
                 <a href="{{ route('projects.create') }}" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_project') }}</a>
-            @endif
+            </div>
         </div>
     </x-slot>
 
