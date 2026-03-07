@@ -14,8 +14,11 @@
                 @endif
             </div>
             @php $userRole = $project->roleFor(auth()->user()); @endphp
-            <div class="flex gap-2 flex-wrap">
+            <div class="flex gap-2 flex-wrap items-center">
+
+                {{-- Back --}}
                 <a href="{{ route('projects.index') }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; {{ __('ui.back_to_projects') }}</a>
+
                 @if($project->trashed())
                     @if(Auth::user()->isAdmin())
                         <form method="POST" action="{{ route('projects.restore', $project) }}" class="inline">
@@ -24,27 +27,72 @@
                         </form>
                     @endif
                 @else
-                    <a href="{{ route('project-files.index', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">{{ __('ui.files') }}</a>
-                    <a href="{{ route('backlog.export-v3', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.export') }}</a>
-                    @if(($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin())
-                        <a href="{{ route('backlog.import-v3', $project) }}" class="px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700">{{ __('ui.import') }}</a>
-                    @endif
+
+                    {{-- New Epic — primary CTA --}}
                     @if(($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin())
                         <a href="{{ route('epics.create', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_epic') }}</a>
                     @endif
+
+                    {{-- 資料 dropdown: Files / Export / Import --}}
+                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                        <button @click="open = !open" class="flex items-center gap-1 px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">
+                            {{ __('ui.data') }}
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="open" x-transition class="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded shadow-lg z-50 py-1">
+                            <a href="{{ route('project-files.index', $project) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                                {{ __('ui.files') }}
+                            </a>
+                            <a href="{{ route('backlog.export-v3', $project) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                {{ __('ui.export') }}
+                            </a>
+                            @if(($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin())
+                                <a href="{{ route('backlog.import-v3', $project) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12"/></svg>
+                                    {{ __('ui.import') }}
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- 設定 dropdown: Edit / Manage Access / Delete --}}
                     @if(($userRole && $userRole !== 'viewer') || Auth::user()->isAdmin())
-                        <a href="{{ route('projects.edit', $project) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.edit') }}</a>
+                        <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                            <button @click="open = !open" class="flex items-center gap-1 px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">
+                                {{ __('ui.settings') }}
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" x-transition class="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded shadow-lg z-50 py-1">
+                                @if(($userRole && $userRole !== 'viewer') || Auth::user()->isAdmin())
+                                    <a href="{{ route('projects.edit', $project) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        {{ __('ui.edit') }}
+                                    </a>
+                                @endif
+                                @if($userRole === 'owner' || Auth::user()->isAdmin())
+                                    <a href="{{ route('projects.access', $project) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                        {{ __('ui.manage_access') }}
+                                    </a>
+                                @endif
+                                @if(Auth::user()->isAdmin())
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    <form method="POST" action="{{ route('projects.destroy', $project) }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" onclick="return confirm('{{ __('ui.confirm_delete_project') }}')"
+                                            class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            {{ __('ui.delete_project') }}
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
                     @endif
-                    @if($userRole === 'owner' || Auth::user()->isAdmin())
-                        <a href="{{ route('projects.access', $project) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">{{ __('ui.manage_access') }}</a>
-                    @endif
-                    @if(Auth::user()->isAdmin())
-                        <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700" onclick="return confirm('{{ __('ui.confirm_delete_project') }}')">{{ __('ui.delete_project') }}</button>
-                        </form>
-                    @endif
+
                 @endif
             </div>
         </div>

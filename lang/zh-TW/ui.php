@@ -250,6 +250,8 @@ return [
     'dry_run'               => '試跑（僅預覽，不變更資料庫）',
     'import'                => '匯入',
     'export'                => '匯出',
+    'data'                  => '資料',
+    'settings'              => '設定',
     'import_error'          => '匯入錯誤：',
     'preview'               => '預覽：',
     'import_summary'        => '匯入摘要：',

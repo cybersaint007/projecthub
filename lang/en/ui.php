@@ -250,6 +250,8 @@ return [
     'dry_run'               => 'Dry run (preview only, no changes to database)',
     'import'                => 'Import',
     'export'                => 'Export',
+    'data'                  => 'Data',
+    'settings'              => 'Settings',
     'import_error'          => 'Import Error:',
     'preview'               => 'Preview:',
     'import_summary'        => 'Import Summary:',
