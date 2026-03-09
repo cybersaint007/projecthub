@@ -304,7 +304,7 @@ class ProjectImporter
         if (isset($d['format_type'])) $prompt->format_type = $d['format_type'];
         if (isset($d['title']))       $prompt->title       = $d['title'];
         if (isset($d['content']))     $prompt->content     = $d['content'];
-        if (isset($d['version']))     $prompt->version     = $this->normalizeVersion($d['version'], $taskId, $d['agent_type'] ?? $prompt->agent_type);
+        if (isset($d['version']))     $prompt->version     = (int) $d['version'];
         if (isset($d['purpose']))     $prompt->purpose     = $d['purpose'];
 
         // V3 field not in $fillable
@@ -373,35 +373,6 @@ class ProjectImporter
             };
         }
         return (int) $val ?: Task::PRIORITY_MEDIUM;
-    }
-
-    /**
-     * Convert a version value to a positive integer.
-     * Strings like "v1" → 1; non-numeric strings get next available version.
-     */
-    private function normalizeVersion(mixed $val, int $taskId, string $agentType): int
-    {
-        if (is_int($val) && $val > 0) {
-            return $val;
-        }
-
-        // Try extracting a leading integer from strings like "v1", "v2"
-        if (is_string($val) && preg_match('/(\d+)/', $val, $m)) {
-            $num = (int) $m[1];
-            if ($num > 0) {
-                // Check if this version is already taken for this task+agent
-                $exists = TaskPrompt::where('task_id', $taskId)
-                    ->where('agent_type', $agentType)
-                    ->where('version', $num)
-                    ->exists();
-                if (!$exists) {
-                    return $num;
-                }
-            }
-        }
-
-        // Fallback: next available version
-        return TaskPrompt::nextVersionFor($taskId, $agentType);
     }
 
     /**
