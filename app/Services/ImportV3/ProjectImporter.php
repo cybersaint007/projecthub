@@ -23,6 +23,9 @@ class ProjectImporter
     // external_key => task DB id, built during task pass
     private array $taskKeyMap = [];
 
+    // Track assigned prompt versions per (task_id, agent_type) to avoid unique constraint violations
+    private array $promptVersionTracker = [];
+
     // external_key => [dependency keys], built during task pass for second-pass validation
     private array $taskDepsMap = [];
 
@@ -304,16 +307,18 @@ class ProjectImporter
         if (isset($d['format_type'])) $prompt->format_type = $d['format_type'];
         if (isset($d['title']))       $prompt->title       = $d['title'];
         if (isset($d['content']))     $prompt->content     = $d['content'];
-        if (isset($d['version']))     $prompt->version     = (int) $d['version'];
         if (isset($d['purpose']))     $prompt->purpose     = $d['purpose'];
 
         // V3 field not in $fillable
         if (isset($d['external_key'])) $prompt->external_key = $d['external_key'];
 
-        // Default version to 1 for new prompts if not given
-        if ($created && !isset($d['version'])) {
-            $prompt->version = 1;
-        }
+        // Assign a unique version per (task_id, agent_type) to satisfy the unique constraint.
+        // Uses the in-memory tracker so no cross-project DB queries are needed.
+        $agentType = $prompt->agent_type;
+        $versionKey = "{$taskId}:{$agentType}";
+        $nextVersion = ($this->promptVersionTracker[$versionKey] ?? 0) + 1;
+        $prompt->version = $nextVersion;
+        $this->promptVersionTracker[$versionKey] = $nextVersion;
 
         $prompt->save();
 
@@ -395,5 +400,6 @@ class ProjectImporter
         $this->depWarnings    = [];
         $this->taskKeyMap     = [];
         $this->taskDepsMap    = [];
+        $this->promptVersionTracker = [];
     }
 }
