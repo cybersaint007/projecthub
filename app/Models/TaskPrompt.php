@@ -9,7 +9,7 @@ class TaskPrompt extends Model
 {
     public const AGENT_TYPES = ['claude_code', 'cursor2', 'human'];
 
-    public const FORMAT_TYPES = ['structured', 'freeform'];
+    public const FORMAT_TYPES = ['structured', 'freeform', 'raw'];
 
     protected $table = 'task_prompts';
 
