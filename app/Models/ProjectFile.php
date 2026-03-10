@@ -18,7 +18,7 @@ class ProjectFile extends Model
     ];
 
     public const MAX_SIZE = 20 * 1024 * 1024; // 20MB
-    public const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'xlsx', 'png', 'jpg', 'txt', 'md', 'zip'];
+    public const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'xlsx', 'xls', 'png', 'jpg', 'txt', 'md', 'zip'];
 
     public function project(): BelongsTo
     {
