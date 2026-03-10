@@ -198,7 +198,7 @@ class ProjectExporterTest extends TestCase
         $task->acceptance_criteria = 'It works';
         $task->dependencies        = json_encode(['dep-ext-1']);
         $task->blocking            = json_encode(['block-ext-1']);
-        $task->artifacts           = json_encode([['name' => 'output.txt', 'url' => '/files/1']]);
+        $task->artifact_refs       = json_encode([['name' => 'output.txt', 'url' => '/files/1']]);
         $task->review_metadata     = json_encode(['required' => true]);
         $task->custom_fields       = json_encode(['team' => 'backend']);
         $task->save();
