@@ -145,7 +145,7 @@ class AgentController extends Controller
             'file' => [
                 'required', 'file',
                 'max:' . (ProjectFile::MAX_SIZE / 1024),
-                'mimes:' . implode(',', ProjectFile::ALLOWED_EXTENSIONS),
+                'extensions:' . implode(',', ProjectFile::ALLOWED_EXTENSIONS),
             ],
             'kind' => 'nullable|string|max:50',
             'note' => 'nullable|string|max:500',

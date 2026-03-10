@@ -34,7 +34,7 @@ class TaskArtifactController extends Controller
                 'required',
                 'file',
                 'max:' . (ProjectFile::MAX_SIZE / 1024),
-                'mimes:' . implode(',', ProjectFile::ALLOWED_EXTENSIONS),
+                'extensions:' . implode(',', ProjectFile::ALLOWED_EXTENSIONS),
             ],
             'note' => 'nullable|string|max:500',
         ]);
