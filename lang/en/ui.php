@@ -151,6 +151,7 @@ return [
     'instructions_label'    => 'Instructions (what to do)',
     'acceptance_criteria'   => 'Acceptance Criteria',
     'no_tasks_yet'          => 'No tasks yet.',
+    'all_statuses'          => 'All Statuses',
     'confirm_delete_task'   => 'Are you sure you want to delete this task? This action can be undone by an admin.',
 
     // Task statuses

@@ -1,10 +1,18 @@
 @php
     $canUpdate = ($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin();
 @endphp
-<div class="space-y-6">
+<div class="space-y-6" x-data="{ statusFilter: '' }">
     @if($project->epics->isEmpty())
         <p class="text-gray-500">{{ __('ui.no_epics_yet') }}</p>
     @else
+        <div class="flex justify-end mb-3">
+            <select x-model="statusFilter" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">{{ __('ui.all_statuses') }}</option>
+                @foreach(\App\Models\Task::STATUSES as $s)
+                    <option value="{{ $s }}">{{ $s }}</option>
+                @endforeach
+            </select>
+        </div>
         <div id="epic-sortable" class="space-y-3">
             @foreach($project->epics as $epic)
                 @if($epic->trashed())
@@ -46,7 +54,7 @@
                                             <span class="text-xs bg-red-100 text-red-700 px-1.5 rounded">{{ __('ui.deleted') }}</span>
                                         </div>
                                     @else
-                                        <div class="task-row flex items-center gap-2 py-2 hover:bg-gray-50 rounded group" data-task-id="{{ $task->id }}">
+                                        <div class="task-row flex items-center gap-2 py-2 hover:bg-gray-50 rounded group" data-task-id="{{ $task->id }}" x-show="statusFilter === '' || statusFilter === '{{ $task->status }}'">
                                             @if($canUpdate)
                                                 <span class="task-handle cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 shrink-0 inline-flex items-center justify-center min-w-[24px] select-none touch-none" style="user-select:none;-webkit-user-select:none" title="Drag to reorder" role="button" tabindex="-1">&#8942;&#8942;</span>
                                             @endif

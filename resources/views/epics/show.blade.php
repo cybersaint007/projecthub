@@ -25,9 +25,19 @@
         </div>
     @endif
 
-    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg" x-data="{ statusFilter: '' }">
         <div class="p-6">
-            <h3 class="text-lg font-medium mb-4">{{ __('ui.tasks') }} ({{ $epic->tasks->count() }})</h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium">{{ __('ui.tasks') }} ({{ $epic->tasks->count() }})</h3>
+                @if($epic->tasks->isNotEmpty())
+                    <select x-model="statusFilter" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">{{ __('ui.all_statuses') }}</option>
+                        @foreach(\App\Models\Task::STATUSES as $s)
+                            <option value="{{ $s }}">{{ $s }}</option>
+                        @endforeach
+                    </select>
+                @endif
+            </div>
             @if($epic->tasks->isEmpty())
                 <p class="text-gray-500">{{ __('ui.no_tasks_yet') }}</p>
             @else
@@ -42,7 +52,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @foreach($epic->tasks as $task)
-                            <tr>
+                            <tr x-show="statusFilter === '' || statusFilter === '{{ $task->status }}'">
                                 <td class="px-4 py-3">
                                     <a href="{{ route('tasks.show', $task) }}" class="text-indigo-600 hover:underline">{{ $task->title }}</a>
                                 </td>
