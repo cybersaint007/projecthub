@@ -151,6 +151,7 @@ return [
     'instructions_label'    => '指示（執行內容）',
     'acceptance_criteria'   => '驗收標準',
     'no_tasks_yet'          => '尚無任務。',
+    'confirm_delete_task'   => '確定要刪除此任務嗎？管理員可以還原此操作。',
 
     // Task statuses
     'status_todo'        => '待辦',
