@@ -21,26 +21,28 @@
     @else
         <div class="space-y-0 border-l-2 border-gray-200 pl-4">
             @foreach($task->taskLogs as $log)
-                <div class="relative pb-5 last:pb-0" x-data="{ editing: false }">
+                <div class="relative pb-3 last:pb-0" x-data="{ open: {{ $task->taskLogs->count() === 1 ? 'true' : 'false' }}, editing: false }">
                     <span class="absolute -left-4 top-1.5 h-2 w-2 rounded-full {{ $log->log_type === 'manual' ? 'bg-indigo-500' : ($log->log_type === 'ai' ? 'bg-purple-500' : 'bg-gray-400') }}"
                           aria-hidden="true"></span>
                     <div class="ml-2">
-                        <div class="flex items-center gap-2 text-xs text-gray-500 mb-0.5">
+                        <div class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none" @click="if (!editing) open = !open">
+                            <svg class="w-3 h-3 text-gray-400 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             <span class="px-1.5 py-0.5 rounded {{ $log->log_type === 'manual' ? 'bg-indigo-100 text-indigo-700' : ($log->log_type === 'ai' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600') }}">{{ $log->log_type }}</span>
                             <span>{{ $log->created_at->format('M j, Y H:i') }}</span>
                             @if($log->user)
                                 <span>{{ $log->user->name }}</span>
                             @endif
-                            <button type="button" @click="editing = !editing"
+                            <span class="text-gray-400 truncate max-w-xs" x-show="!open">— {{ Str::limit($log->content, 80) }}</span>
+                            <button type="button" @click.stop="editing = !editing; if (editing) open = true"
                                 class="ml-auto text-[11px] text-indigo-600 hover:underline">{{ __('ui.edit') }}</button>
                             <form method="POST" action="{{ route('task-logs.destroy', $log) }}"
                                   onsubmit="return confirm('{{ __('ui.confirm_delete_log') }}')"
-                                  class="inline">
+                                  class="inline" @click.stop>
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-[11px] text-red-500 hover:underline">{{ __('ui.delete') }}</button>
                             </form>
                         </div>
-                        <div x-show="!editing">
+                        <div x-show="open && !editing" x-transition class="mt-1">
                             <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ $log->content }}</p>
                         </div>
                         <div x-show="editing" class="mt-2">
