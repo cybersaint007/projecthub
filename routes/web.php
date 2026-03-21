@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/tasks/{task}/description', [TaskController::class, 'updateDescription'])->name('tasks.description.update');
     Route::post('/tasks/{task}/logs', [TaskLogController::class, 'store'])->name('task-logs.store');
     Route::patch('/task-logs/{taskLog}', [TaskLogController::class, 'update'])->name('task-logs.update');
+    Route::delete('/task-logs/{taskLog}', [TaskLogController::class, 'destroy'])->name('task-logs.destroy');
 
     // Task Artifacts
     Route::post('/tasks/{task}/artifacts', [TaskArtifactController::class, 'store'])->name('artifacts.store');

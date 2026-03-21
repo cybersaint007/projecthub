@@ -179,6 +179,7 @@ return [
     'add_log'                => 'Add Log',
     'add_log_placeholder'    => 'Add a work log entry...',
     'no_logs_yet'            => 'No work logs yet. Add one above.',
+    'confirm_delete_log'     => 'Delete this work log?',
 
     // Artifacts
     'artifacts'              => 'Artifacts',

@@ -38,6 +38,16 @@ class TaskLogController extends Controller
         return redirect(route('tasks.show', $taskLog->task) . '#logs')->with('status', 'Work log updated.');
     }
 
+    public function destroy(Request $request, TaskLog $taskLog)
+    {
+        $this->authorizeEpic($request->user(), $taskLog->task->epic);
+
+        $task = $taskLog->task;
+        $taskLog->delete();
+
+        return redirect(route('tasks.show', $task) . '#logs')->with('status', 'Work log deleted.');
+    }
+
     private function authorizeEpic($user, $epic): void
     {
         if ($user->isAdmin()) {

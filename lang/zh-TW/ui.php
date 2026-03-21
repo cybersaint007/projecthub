@@ -179,6 +179,7 @@ return [
     'add_log'                => '新增日誌',
     'add_log_placeholder'    => '新增工作日誌...',
     'no_logs_yet'            => '尚無工作日誌。請在上方新增。',
+    'confirm_delete_log'     => '確定要刪除此工作日誌嗎？',
 
     // Artifacts
     'artifacts'              => '產出物',

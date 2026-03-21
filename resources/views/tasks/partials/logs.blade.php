@@ -33,6 +33,12 @@
                             @endif
                             <button type="button" @click="editing = !editing"
                                 class="ml-auto text-[11px] text-indigo-600 hover:underline">{{ __('ui.edit') }}</button>
+                            <form method="POST" action="{{ route('task-logs.destroy', $log) }}"
+                                  onsubmit="return confirm('{{ __('ui.confirm_delete_log') }}')"
+                                  class="inline">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="text-[11px] text-red-500 hover:underline">{{ __('ui.delete') }}</button>
+                            </form>
                         </div>
                         <div x-show="!editing">
                             <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ $log->content }}</p>
