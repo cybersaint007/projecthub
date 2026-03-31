@@ -114,6 +114,12 @@ Go through each acceptance criterion from the task and confirm whether it was me
 - [ ] Criterion one — met / not met (reason)
 - [ ] Criterion two — met / not met (reason)
 
+### Manual Verification Steps
+Provide step-by-step instructions a human reviewer can follow to verify the work is correct:
+1. Step one (e.g. run a specific command, visit a URL, check a UI element)
+2. Step two
+3. ...
+
 ### Notes
 Any caveats, follow-up tasks, or things the reviewer should pay attention to.
 MD;
