@@ -224,10 +224,7 @@ while (true) {
         continue;
     }
 
-    // ── Step 5: Log start ─────────────────────────────────────────────────────
-    postLog($config, $taskId, $leaseToken, 'info', "Agent runner starting task: {$taskTitle}");
-
-    // ── Step 6: Write prompt to temp file ─────────────────────────────────────
+    // ── Step 5: Write prompt to temp file ────────────────────────────────────
     $promptFile = sys_get_temp_dir() . "/ph_task_{$taskId}.md";
     if (file_put_contents($promptFile, $promptContent) === false) {
         log_msg("Failed to write prompt file: {$promptFile}");
@@ -253,11 +250,9 @@ while (true) {
 
     // ── Step 8: Update status based on exit code ──────────────────────────────
     if ($exitCode === 0) {
-        postLog($config, $taskId, $leaseToken, 'info', "Execution completed successfully (exit 0).");
         patchStatus($config, $taskId, $leaseToken, 'Review');
         log_msg("Task #{$taskId} moved to Review.");
     } else {
-        postLog($config, $taskId, $leaseToken, 'error', "Execution failed with exit code {$exitCode}.");
         patchStatus($config, $taskId, $leaseToken, 'Ready');
         log_msg("Task #{$taskId} returned to Ready (exit code {$exitCode}).");
     }
