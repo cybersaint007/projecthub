@@ -344,9 +344,11 @@ function executeClaudeTask(
 
             if ($chunk !== false && $chunk !== '') {
                 if ($isStdout) {
+                    // Accumulate stdout — posted as one entry at EOF so the
+                    // work log is not fragmented into per-line entries.
                     $stdoutBuf .= $chunk;
-                    $stdoutBuf = flushLinesToLog($config, $taskId, $leaseToken, 'info', $stdoutBuf);
                 } else {
+                    // Stream stderr line-by-line so errors appear immediately.
                     $stderrBuf .= $chunk;
                     $stderrBuf = flushLinesToLog($config, $taskId, $leaseToken, 'error', $stderrBuf);
                 }
@@ -355,7 +357,8 @@ function executeClaudeTask(
             if (feof($stream)) {
                 if ($isStdout) {
                     if ($stdoutBuf !== '') {
-                        postLog($config, $taskId, $leaseToken, 'info', stripAnsi($stdoutBuf));
+                        // Post the entire Claude response as a single log entry.
+                        postLog($config, $taskId, $leaseToken, 'info', stripAnsi(trim($stdoutBuf)));
                         $stdoutBuf = '';
                     }
                     fclose($pipes[1]);
