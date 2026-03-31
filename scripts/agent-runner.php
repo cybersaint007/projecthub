@@ -352,8 +352,14 @@ function executeClaudeTask(
             if (feof($stream)) {
                 if ($isStdout) {
                     if ($stdoutBuf !== '') {
-                        // Post the entire Claude response as a single log entry.
-                        postLog($config, $taskId, $leaseToken, 'info', stripAnsi(trim($stdoutBuf)));
+                        // Extract only the work log section from Claude's full response.
+                        // The footer template always begins with "---\n\n## Work Log Report".
+                        // If not found, fall back to posting the full output.
+                        $cleaned = stripAnsi(trim($stdoutBuf));
+                        $marker = "## Work Log Report";
+                        $pos = strrpos($cleaned, $marker);
+                        $workLog = $pos !== false ? trim(substr($cleaned, $pos)) : $cleaned;
+                        postLog($config, $taskId, $leaseToken, 'info', $workLog);
                         $stdoutBuf = '';
                     }
                     fclose($pipes[1]);

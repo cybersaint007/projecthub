@@ -137,7 +137,7 @@ class AgentController extends Controller
         $log = $task->taskLogs()->create([
             'user_id' => null,
             'log_type' => 'ai',
-            'content' => "[{$data['level']}] {$data['message']}",
+            'content' => $data['level'] === 'info' ? $data['message'] : "[{$data['level']}] {$data['message']}",
         ]);
 
         return response()->json(['id' => $log->id], 201);
