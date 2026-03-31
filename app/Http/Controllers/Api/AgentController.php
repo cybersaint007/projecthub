@@ -41,14 +41,19 @@ class AgentController extends Controller
             'agent_type' => 'sometimes|string|in:' . implode(',', Task::AGENTS),
         ]);
 
-        $query = Task::whereHas('epic', fn ($q) => $q->where('project_id', $project->id))
-            ->whereIn('status', self::CLAIMABLE_STATUSES)
+        $query = Task::query()
+            ->join('epics', 'epics.id', '=', 'tasks.epic_id')
+            ->where('epics.project_id', $project->id)
+            ->whereNull('epics.deleted_at')
+            ->whereIn('tasks.status', self::CLAIMABLE_STATUSES)
             ->where(function ($q) {
-                $q->whereNull('leased_until')
-                    ->orWhere('leased_until', '<', now());
+                $q->whereNull('tasks.leased_until')
+                    ->orWhere('tasks.leased_until', '<', now());
             })
-            ->orderBy('position')
-            ->orderBy('id');
+            ->whereNull('tasks.deleted_at')
+            ->orderBy('epics.position')
+            ->orderBy('tasks.position')
+            ->select('tasks.*');
 
         if ($request->filled('agent_type')) {
             $query->where('agent', $request->input('agent_type'));
