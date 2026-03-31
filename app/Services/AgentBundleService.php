@@ -92,36 +92,27 @@ class AgentBundleService
 
 ## Work Log Report (Required)
 
-After completing the task, you MUST output a structured work log using exactly this format:
+After completing the task, you MUST output a work log in exactly this format:
 
 ### Summary
-A concise paragraph describing what was implemented and any key decisions made.
 
-### Files Created
-List every new file created, one per line with a brief note:
-- `path/to/file.php` — what it does
+#### What was already complete
+Describe any work that was pre-existing before you started — files already created, logic already implemented, tests already passing. If nothing was pre-existing, write "N/A".
 
-### Files Modified
-List every existing file changed, one per line with a brief note:
-- `path/to/file.php` — what was changed and why
+#### What was done
+A concise narrative of what you implemented or changed. Cover:
+- New files created (controllers, services, migrations, views, routes, etc.) and what each does
+- Existing files modified and what changed and why
+- Tests written or run, the commands used, and the results (e.g. `php artisan test --filter FooTest` — 12 passed)
 
-### Tests Conducted
-List every test run, the command used, and the result:
-- `php artisan test --filter FooTest` — X passed, Y failed (describe any failures)
-
-### Acceptance Criteria Check
-Go through each acceptance criterion from the task and confirm whether it was met:
-- [ ] Criterion one — met / not met (reason)
-- [ ] Criterion two — met / not met (reason)
-
-### Manual Verification Steps
-Provide step-by-step instructions a human reviewer can follow to verify the work is correct:
-1. Step one (e.g. run a specific command, visit a URL, check a UI element)
+### Manual Verification
+Numbered steps a human reviewer can follow to confirm the work is correct:
+1. Step one (e.g. run a specific command, visit a URL, check a UI element or API response)
 2. Step two
 3. ...
 
 ### Notes
-Any caveats, follow-up tasks, or things the reviewer should pay attention to.
+Any caveats, known issues, follow-up tasks, or things the reviewer should pay attention to. If none, write "None."
 MD;
     }
 
