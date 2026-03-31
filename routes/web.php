@@ -11,7 +11,10 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskLogController;
 use App\Http\Controllers\TaskPromptController;
 use App\Http\Controllers\BacklogController;
+use App\Http\Controllers\AgentDashboardController;
 use App\Http\Controllers\TaskReviewController;
+use App\Http\Controllers\AgentTokenController;
+use App\Http\Controllers\WebhookEndpointController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -36,6 +39,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/projects/{project}/access/{user}', [ProjectController::class, 'removeAccessUser'])->name('projects.access.remove');
     Route::put('/projects/{project}/owner', [ProjectController::class, 'updateOwner'])->name('projects.owner.update');
     Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
+    Route::get('/projects/{project}/webhooks', [WebhookEndpointController::class, 'index'])->name('projects.webhooks');
+    Route::post('/projects/{project}/webhooks', [WebhookEndpointController::class, 'store'])->name('projects.webhooks.store');
+    Route::delete('/projects/{project}/webhooks/{webhook}', [WebhookEndpointController::class, 'destroy'])->name('projects.webhooks.destroy');
+
+    Route::get('/projects/{project}/agent-tokens', [AgentTokenController::class, 'index'])->name('projects.agent-tokens');
+    Route::post('/projects/{project}/agent-tokens', [AgentTokenController::class, 'store'])->name('projects.agent-tokens.store');
+    Route::delete('/projects/{project}/agent-tokens/{agentToken}', [AgentTokenController::class, 'destroy'])->name('projects.agent-tokens.destroy');
 
     // Epics
     Route::post('/projects/{project}/epics/reorder', [ProjectController::class, 'reorderEpics'])->name('projects.epics.reorder');
@@ -96,6 +106,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
         Route::post('/users/{user}/sync-projects', [AdminUserController::class, 'syncProjects'])->name('users.sync-projects');
     });
+
+    // Agent dashboard (admin-only, enforced in controller)
+    Route::middleware('admin')->get('/agent/dashboard', [AgentDashboardController::class, 'index'])->name('agent.dashboard');
 
 });
 

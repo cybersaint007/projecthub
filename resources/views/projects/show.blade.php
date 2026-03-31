@@ -44,6 +44,7 @@
                 @endif
                 @if($userRole === 'owner' || Auth::user()->isAdmin())
                     <a href="{{ route('projects.access', $project) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700">{{ __('ui.manage_access') }}</a>
+                    <a href="{{ route('projects.agent-tokens', $project) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700">Agent Tokens</a>
                 @endif
             @endif
 

@@ -55,6 +55,16 @@ class Project extends Model
         return $this->hasMany(ProjectFile::class);
     }
 
+    public function webhookEndpoints(): HasMany
+    {
+        return $this->hasMany(WebhookEndpoint::class);
+    }
+
+    public function agentTokens(): HasMany
+    {
+        return $this->hasMany(AgentToken::class);
+    }
+
     /**
      * Current user's role on this project: owner, editor, viewer, or null if no access.
      */

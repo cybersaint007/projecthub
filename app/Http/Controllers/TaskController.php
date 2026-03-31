@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\DispatchWebhook;
 use App\Models\Epic;
 use App\Models\Task;
+use App\Models\WebhookEndpoint;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -80,7 +82,12 @@ class TaskController extends Controller
             $data['tags'] = null;
         }
 
+        $oldStatus = $task->status;
         $task->update($data);
+
+        if ($oldStatus !== 'Ready' && $task->status === 'Ready') {
+            $this->dispatchReadyWebhooks($task);
+        }
 
         return redirect()->route('tasks.show', $task)->with('status', 'Task updated.');
     }
@@ -93,7 +100,12 @@ class TaskController extends Controller
             'status' => 'required|in:' . implode(',', Task::STATUSES),
         ]);
 
+        $oldStatus = $task->status;
         $task->update($data);
+
+        if ($oldStatus !== 'Ready' && $task->status === 'Ready') {
+            $this->dispatchReadyWebhooks($task);
+        }
 
         return back()->with('status', 'Task status updated.');
     }
@@ -121,6 +133,26 @@ class TaskController extends Controller
         $task->delete();
 
         return redirect()->route('epics.show', $epic)->with('status', 'Task deleted.');
+    }
+
+    private function dispatchReadyWebhooks(Task $task): void
+    {
+        $projectId = $task->epic->project_id;
+
+        WebhookEndpoint::where('project_id', $projectId)
+            ->where('active', true)
+            ->whereJsonContains('events', 'task.ready')
+            ->get()
+            ->each(function (WebhookEndpoint $endpoint) use ($task) {
+                DispatchWebhook::dispatch($endpoint, [
+                    'event' => 'task.ready',
+                    'project_id' => $task->epic->project_id,
+                    'task_id' => $task->id,
+                    'task_title' => $task->title,
+                    'agent_type' => $task->agent,
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+            });
     }
 
     private function authorizeEpic($user, Epic $epic): void

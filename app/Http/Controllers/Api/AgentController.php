@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\DispatchWebhook;
 use App\Models\AgentToken;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\Task;
 use App\Models\TaskArtifact;
+use App\Models\WebhookEndpoint;
 use App\Services\AgentBundleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -192,16 +194,41 @@ class AgentController extends Controller
             ], 422);
         }
 
+        $oldStatus = $task->status;
         $task->update(['status' => $data['status']]);
 
         if (in_array($data['status'], ['Done', 'Review'], true)) {
             $task->clearLease();
         }
 
+        if ($oldStatus !== 'Ready' && $task->status === 'Ready') {
+            $this->dispatchReadyWebhooks($task);
+        }
+
         return response()->json([
             'task_id' => $task->id,
             'status' => $task->fresh()->status,
         ]);
+    }
+
+    private function dispatchReadyWebhooks(Task $task): void
+    {
+        $projectId = $task->epic->project_id;
+
+        WebhookEndpoint::where('project_id', $projectId)
+            ->where('active', true)
+            ->whereJsonContains('events', 'task.ready')
+            ->get()
+            ->each(function (WebhookEndpoint $endpoint) use ($task) {
+                DispatchWebhook::dispatch($endpoint, [
+                    'event' => 'task.ready',
+                    'project_id' => $task->epic->project_id,
+                    'task_id' => $task->id,
+                    'task_title' => $task->title,
+                    'agent_type' => $task->agent,
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+            });
     }
 
     private function authorizeProject(Request $request, Project $project): void

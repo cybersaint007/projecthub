@@ -1,0 +1,105 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Agent Tokens: {{ $project->name }}</h2>
+            <a href="{{ route('projects.show', $project) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; Back to Project</a>
+        </div>
+    </x-slot>
+
+    <div class="space-y-6">
+        @if (session('status'))
+            <div class="p-4 bg-green-100 border border-green-300 text-green-800 rounded">{{ session('status') }}</div>
+        @endif
+
+        @if (session('new_token'))
+            <div class="p-4 bg-yellow-50 border border-yellow-300 rounded" x-data="{ copied: false }">
+                <p class="text-sm font-semibold text-yellow-800 mb-2">Token created — copy it now. It will not be shown again.</p>
+                <div class="flex items-center gap-3">
+                    <code class="flex-1 font-mono text-sm bg-white border border-yellow-300 rounded px-3 py-2 break-all select-all">{{ session('new_token') }}</code>
+                    <button
+                        @click="navigator.clipboard.writeText('{{ session('new_token') }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                        class="shrink-0 px-3 py-2 text-sm border border-yellow-400 rounded hover:bg-yellow-100 text-yellow-800"
+                        x-text="copied ? 'Copied!' : 'Copy'">
+                        Copy
+                    </button>
+                </div>
+            </div>
+        @endif
+
+        {{-- Create token --}}
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <h3 class="text-lg font-medium mb-4">Create Agent Token</h3>
+            <form method="POST" action="{{ route('projects.agent-tokens.store', $project) }}" class="flex items-end gap-3">
+                @csrf
+                <div class="flex-1">
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Token name <span class="text-red-500">*</span></label>
+                    <input type="text" id="name" name="name" value="{{ old('name') }}" required
+                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="e.g. macbook-local, ci-runner">
+                    @error('name') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                </div>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">Generate Token</button>
+            </form>
+        </div>
+
+        {{-- Existing tokens --}}
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <h3 class="text-lg font-medium mb-4">Active Tokens</h3>
+            @if ($tokens->isEmpty())
+                <p class="text-gray-500 text-sm">No agent tokens for this project.</p>
+            @else
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-2 pr-4 font-medium text-gray-700">Name</th>
+                            <th class="text-left py-2 pr-4 font-medium text-gray-700">Created</th>
+                            <th class="text-left py-2 pr-4 font-medium text-gray-700">Last used</th>
+                            <th class="text-left py-2 pr-4 font-medium text-gray-700">Expires</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($tokens as $token)
+                            <tr class="border-b border-gray-100">
+                                <td class="py-2 pr-4 font-medium">{{ $token->name }}</td>
+                                <td class="py-2 pr-4 text-gray-500">{{ $token->created_at->format('Y-m-d') }}</td>
+                                <td class="py-2 pr-4 text-gray-500">{{ $token->last_used_at ? $token->last_used_at->diffForHumans() : '—' }}</td>
+                                <td class="py-2 pr-4 text-gray-500">
+                                    @if ($token->expires_at)
+                                        @if ($token->isExpired())
+                                            <span class="text-red-600 text-xs">Expired {{ $token->expires_at->format('Y-m-d') }}</span>
+                                        @else
+                                            {{ $token->expires_at->format('Y-m-d') }}
+                                        @endif
+                                    @else
+                                        Never
+                                    @endif
+                                </td>
+                                <td class="py-2 text-right">
+                                    <form method="POST" action="{{ route('projects.agent-tokens.destroy', [$project, $token]) }}"
+                                        onsubmit="return confirm('Revoke token \'{{ addslashes($token->name) }}\'? This cannot be undone.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Revoke</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+
+        {{-- Runner quick-start --}}
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <h3 class="text-lg font-medium mb-3">Quick-start: agent-runner.env</h3>
+            <p class="text-sm text-gray-500 mb-3">Copy to <code class="bg-gray-100 px-1 rounded">scripts/agent-runner.env</code> and fill in your token.</p>
+            <pre class="bg-gray-50 border rounded p-4 text-xs font-mono whitespace-pre-wrap">AGENT_API_BASE={{ rtrim(config('app.url'), '/') }}
+AGENT_TOKEN=&lt;paste-token-here&gt;
+AGENT_PROJECT_ID={{ $project->id }}
+AGENT_TYPE=claude_code
+AGENT_WORKER_ID={{ gethostname() }}
+AGENT_REPO_PATH=/path/to/your/repo</pre>
+        </div>
+    </div>
+</x-app-layout>
