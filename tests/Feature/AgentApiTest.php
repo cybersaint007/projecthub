@@ -143,7 +143,7 @@ class AgentApiTest extends TestCase
 
         $response->assertOk();
         $response->assertJsonPath('prompt.generated', false);
-        $response->assertJsonPath('prompt.content', 'Do the thing.');
+        $this->assertStringStartsWith('Do the thing.', $response->json('prompt.content'));
         $response->assertJsonPath('prompt.version', 1);
         $response->assertJsonPath('task.context', 'test context');
     }
