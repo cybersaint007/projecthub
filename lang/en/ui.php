@@ -130,6 +130,8 @@ return [
     'create_epic'       => 'Create Epic',
     'edit_epic'         => 'Edit Epic',
     'update_epic'       => 'Update Epic',
+    'delete_epic'       => 'Delete Epic',
+    'confirm_delete_epic' => 'Are you sure you want to delete this epic? All tasks within it will also be deleted. This action can be undone by an admin.',
     'no_epics_yet'      => 'No epics yet.',
     'no_epics_kanban'   => 'No epics yet. Add epics to use Kanban view.',
     'milestone_tag'     => 'Milestone Tag',

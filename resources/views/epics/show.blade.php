@@ -15,6 +15,16 @@
                 <a href="{{ route('epics.kanban', $epic) }}" class="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">{{ __('ui.kanban') }}</a>
                 <a href="{{ route('tasks.create', $epic) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_task') }}</a>
                 <a href="{{ route('epics.edit', $epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">{{ __('ui.edit') }}</a>
+                @if(Auth::user()->isAdmin())
+                    <form method="POST" action="{{ route('epics.destroy', $epic) }}" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" onclick="return confirm('{{ __('ui.confirm_delete_epic') }}')"
+                            class="px-3 py-2 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50">
+                            {{ __('ui.delete') }}
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     </x-slot>
