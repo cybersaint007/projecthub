@@ -92,7 +92,7 @@
         $canUpdate = ($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin();
     @endphp
 
-    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+    <div class="bg-white shadow-sm sm:rounded-lg">
         <div class="p-6">
             <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <h3 class="text-lg font-medium">{{ __('ui.epics') }}</h3>
