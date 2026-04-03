@@ -20,8 +20,8 @@ class ProjectExporter
     {
         $project->load([
             'owner',
-            'epics'                  => fn ($q) => $q->withTrashed()->orderBy('position')->orderBy('id'),
-            'epics.tasks'            => fn ($q) => $q->withTrashed()->orderBy('position')->orderBy('id'),
+            'epics'                  => fn ($q) => $q->orderBy('position')->orderBy('id'),
+            'epics.tasks'            => fn ($q) => $q->orderBy('position')->orderBy('id'),
             'epics.tasks.taskPrompts' => fn ($q) => $q->orderBy('id'),
         ]);
 

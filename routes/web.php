@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/epics/{epic}/edit', [EpicController::class, 'edit'])->name('epics.edit');
     Route::put('/epics/{epic}', [EpicController::class, 'update'])->name('epics.update');
     Route::delete('/epics/{epic}', [EpicController::class, 'destroy'])->name('epics.destroy');
+    Route::post('/epics/{id}/restore', [EpicController::class, 'restore'])->name('epics.restore');
     Route::get('/epics/{epic}/kanban', [EpicController::class, 'kanban'])->name('epics.kanban');
 
     // Tasks
@@ -66,6 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
     Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+    Route::post('/tasks/{id}/restore', [TaskController::class, 'restore'])->name('tasks.restore');
     Route::patch('/tasks/{task}/description', [TaskController::class, 'updateDescription'])->name('tasks.description.update');
     Route::post('/tasks/{task}/logs', [TaskLogController::class, 'store'])->name('task-logs.store');
     Route::patch('/task-logs/{taskLog}', [TaskLogController::class, 'update'])->name('task-logs.update');

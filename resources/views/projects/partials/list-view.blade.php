@@ -22,6 +22,13 @@
                                 <span class="font-medium text-gray-400 line-through">{{ $epic->title }}</span>
                                 <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">{{ __('ui.deleted') }}</span>
                             </div>
+                            @if(Auth::user()->isAdmin())
+                                <form method="POST" action="{{ route('epics.restore', $epic->id) }}" class="inline shrink-0">
+                                    @csrf
+                                    <button type="submit" onclick="return confirm('Restore this epic and its tasks?')"
+                                        class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">{{ __('ui.restore') }}</button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 @else
@@ -49,9 +56,16 @@
                             <div class="mt-3 ml-6 task-sortable border-l-2 border-gray-200 pl-4" data-epic-id="{{ $epic->id }}">
                                 @foreach($epic->tasks as $task)
                                     @if($task->trashed())
-                                        <div class="task-row flex items-center gap-2 py-2 text-gray-400 line-through" data-task-id="{{ $task->id }}">
-                                            <span class="text-sm">{{ $task->title }}</span>
+                                        <div class="task-row flex items-center gap-2 py-2 text-gray-400" data-task-id="{{ $task->id }}">
+                                            <span class="text-sm line-through">{{ $task->title }}</span>
                                             <span class="text-xs bg-red-100 text-red-700 px-1.5 rounded">{{ __('ui.deleted') }}</span>
+                                            @if(Auth::user()->isAdmin())
+                                                <form method="POST" action="{{ route('tasks.restore', $task->id) }}" class="inline shrink-0">
+                                                    @csrf
+                                                    <button type="submit" onclick="return confirm('Restore this task?')"
+                                                        class="px-1.5 py-0.5 text-xs bg-green-600 text-white rounded hover:bg-green-700">{{ __('ui.restore') }}</button>
+                                                </form>
+                                            @endif
                                         </div>
                                     @else
                                         <div class="task-row flex items-center gap-2 py-2 hover:bg-gray-50 rounded group" data-task-id="{{ $task->id }}" x-show="statusFilter === '' || statusFilter === '{{ $task->status }}'">

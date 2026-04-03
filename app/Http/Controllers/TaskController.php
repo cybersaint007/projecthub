@@ -135,6 +135,18 @@ class TaskController extends Controller
         return redirect()->route('epics.show', $epic)->with('status', 'Task deleted.');
     }
 
+    public function restore(Request $request, $id)
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $task = Task::onlyTrashed()->findOrFail($id);
+        $task->restore();
+
+        return redirect()->route('epics.show', $task->epic)->with('status', 'Task restored.');
+    }
+
     private function dispatchReadyWebhooks(Task $task): void
     {
         $projectId = $task->epic->project_id;

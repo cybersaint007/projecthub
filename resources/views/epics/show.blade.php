@@ -62,31 +62,51 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @foreach($epic->tasks as $task)
-                            <tr x-show="statusFilter === '' || statusFilter === '{{ $task->status }}'">
-                                <td class="px-4 py-3">
-                                    <a href="{{ route('tasks.show', $task) }}" class="text-indigo-600 hover:underline">{{ $task->title }}</a>
-                                </td>
-                                <td class="px-4 py-3">
-                                    @php
-                                        $statusColors = [
-                                            'Backlog' => 'bg-gray-100 text-gray-700',
-                                            'Ready' => 'bg-blue-100 text-blue-700',
-                                            'InProgress' => 'bg-yellow-100 text-yellow-700',
-                                            'Review' => 'bg-purple-100 text-purple-700',
-                                            'Done' => 'bg-green-100 text-green-700',
-                                        ];
-                                    @endphp
-                                    <span class="px-2 py-1 text-xs rounded {{ $statusColors[$task->status] ?? '' }}">{{ $task->status }}</span>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-500">{{ $task->agent }}</td>
-                                <td class="px-4 py-3">
-                                    @php
-                                        $priorityColors = [1 => 'text-gray-500', 3 => 'text-yellow-600', 5 => 'text-red-600'];
-                                        $priorityLabels = \App\Models\Task::priorityOptions();
-                                    @endphp
-                                    <span class="text-sm {{ $priorityColors[$task->priority] ?? 'text-gray-500' }}">{{ $priorityLabels[$task->priority] ?? 'Medium' }}</span>
-                                </td>
-                            </tr>
+                            @if($task->trashed())
+                                <tr class="opacity-60">
+                                    <td class="px-4 py-3">
+                                        <span class="text-gray-400 line-through">{{ $task->title }}</span>
+                                        <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">{{ __('ui.deleted') }}</span>
+                                    </td>
+                                    <td class="px-4 py-3"></td>
+                                    <td class="px-4 py-3"></td>
+                                    <td class="px-4 py-3">
+                                        @if(Auth::user()->isAdmin())
+                                            <form method="POST" action="{{ route('tasks.restore', $task->id) }}" class="inline">
+                                                @csrf
+                                                <button type="submit" onclick="return confirm('Restore this task?')"
+                                                    class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">{{ __('ui.restore') }}</button>
+                                            </form>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @else
+                                <tr x-show="statusFilter === '' || statusFilter === '{{ $task->status }}'">
+                                    <td class="px-4 py-3">
+                                        <a href="{{ route('tasks.show', $task) }}" class="text-indigo-600 hover:underline">{{ $task->title }}</a>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        @php
+                                            $statusColors = [
+                                                'Backlog' => 'bg-gray-100 text-gray-700',
+                                                'Ready' => 'bg-blue-100 text-blue-700',
+                                                'InProgress' => 'bg-yellow-100 text-yellow-700',
+                                                'Review' => 'bg-purple-100 text-purple-700',
+                                                'Done' => 'bg-green-100 text-green-700',
+                                            ];
+                                        @endphp
+                                        <span class="px-2 py-1 text-xs rounded {{ $statusColors[$task->status] ?? '' }}">{{ $task->status }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $task->agent }}</td>
+                                    <td class="px-4 py-3">
+                                        @php
+                                            $priorityColors = [1 => 'text-gray-500', 3 => 'text-yellow-600', 5 => 'text-red-600'];
+                                            $priorityLabels = \App\Models\Task::priorityOptions();
+                                        @endphp
+                                        <span class="text-sm {{ $priorityColors[$task->priority] ?? 'text-gray-500' }}">{{ $priorityLabels[$task->priority] ?? 'Medium' }}</span>
+                                    </td>
+                                </tr>
+                            @endif
                         @endforeach
                     </tbody>
                 </table>

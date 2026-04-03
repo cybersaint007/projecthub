@@ -19,6 +19,13 @@
                         <div class="kanban-header flex items-center gap-2 mb-3">
                             <span class="font-semibold text-gray-500 line-through">{{ $epic->title }}</span>
                             <span class="text-xs bg-red-100 text-red-700 px-1.5 rounded">{{ __('ui.deleted') }}</span>
+                            @if(Auth::user()->isAdmin())
+                                <form method="POST" action="{{ route('epics.restore', $epic->id) }}" class="inline shrink-0 ml-auto">
+                                    @csrf
+                                    <button type="submit" onclick="return confirm('Restore this epic and its tasks?')"
+                                        class="px-2 py-0.5 text-xs bg-green-600 text-white rounded hover:bg-green-700">{{ __('ui.restore') }}</button>
+                                </form>
+                            @endif
                         </div>
                         <div class="task-sortable min-h-[120px] space-y-2" data-epic-id="{{ $epic->id }}">
                             @foreach($epic->tasks as $task)
@@ -42,6 +49,13 @@
                                 @if($task->trashed())
                                     <div class="kanban-card task-row bg-white rounded p-3 shadow-sm border border-gray-200 opacity-60" data-task-id="{{ $task->id }}">
                                         <span class="text-sm text-gray-400 line-through">{{ $task->title }}</span>
+                                        @if(Auth::user()->isAdmin())
+                                            <form method="POST" action="{{ route('tasks.restore', $task->id) }}" class="inline mt-1">
+                                                @csrf
+                                                <button type="submit" onclick="return confirm('Restore this task?')"
+                                                    class="px-1.5 py-0.5 text-xs bg-green-600 text-white rounded hover:bg-green-700">{{ __('ui.restore') }}</button>
+                                            </form>
+                                        @endif
                                     </div>
                                 @else
                                     <div class="kanban-card task-row bg-white rounded p-3 shadow-sm border border-gray-200 hover:border-gray-300 group" data-task-id="{{ $task->id }}">

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Epic;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EpicController extends Controller
 {
@@ -34,7 +35,10 @@ class EpicController extends Controller
     {
         $this->authorizeProject($request->user(), $epic->project);
 
-        $epic->load(['tasks', 'project']);
+        $epic->load([
+            'tasks' => fn ($q) => $request->user()->isAdmin() ? $q->withTrashed() : $q,
+            'project',
+        ]);
 
         return view('epics.show', compact('epic'));
     }
@@ -71,6 +75,21 @@ class EpicController extends Controller
         $epic->delete();
 
         return redirect()->route('projects.show', $project)->with('status', 'Epic deleted.');
+    }
+
+    public function restore(Request $request, $id)
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        return DB::transaction(function () use ($id) {
+            $epic = Epic::onlyTrashed()->findOrFail($id);
+            $epic->tasks()->onlyTrashed()->restore();
+            $epic->restore();
+
+            return redirect()->route('projects.show', $epic->project)->with('status', 'Epic restored.');
+        });
     }
 
     public function kanban(Request $request, Epic $epic)
