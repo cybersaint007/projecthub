@@ -8,6 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install dependencies
 composer install && npm install
 
+# Full dev environment (Laravel serve + queue + logs + Vite, concurrent)
+composer dev
+
 # Run all tests (SQLite in-memory)
 php artisan test
 
@@ -21,43 +24,44 @@ php artisan test --filter "test_task_can_be_created"
 # Build frontend assets
 npm run build
 
-# Dev server (Vite hot-reload)
+# Dev server (Vite hot-reload only)
 npm run dev
+
+# Recover expired agent leases (returns abandoned tasks to Ready)
+php artisan agent:recover-leases
 ```
 
 ## Architecture
 
-**Stack**: Laravel 12, PostgreSQL (`root` schema via `DB_SCHEMA` env), Blade + Alpine.js + Tailwind CSS, Vite. Tests use SQLite in-memory (`phpunit.xml`).
+**Stack**: Laravel 12 (PHP 8.2+), PostgreSQL (`root` schema via `DB_SCHEMA` env), Blade + Alpine.js + Tailwind CSS, Vite. Tests use SQLite in-memory (`phpunit.xml`). Middleware aliases registered in `bootstrap/app.php` (not a Kernel class).
 
 **Data hierarchy**: Project → Epic → Task (all soft-deletable). Users assigned to projects via `project_user` pivot. Admin-only user creation — no self-registration.
 
-**Auth**: Laravel Breeze (login/logout only). `force_password_reset` on `User` triggers a middleware redirect to password change on first login.
+**Auth**: Laravel Breeze (login/logout only). `force_password_reset` on `User` triggers `ForcePasswordReset` middleware redirect to password change on first login.
 
-**Task status flow**: `Backlog → Ready → InProgress → Review → Done` (also `Blocked`). Transitions enforced in `TaskController`; the Agent API enforces its own allowed-transition set in `AgentController`.
+**Task status flow**: `TODO | Backlog → Ready → InProgress → Review → Done` (also `Blocked`). Transitions enforced in `TaskController`; the Agent API enforces its own FSM in `AgentController` (`TODO/Ready → InProgress`, `InProgress → Review/Done`, `Review → InProgress/Done`).
 
-**Agent API** (`routes/api.php`, prefix `/api/agent`): Bearer-token auth via `AgentTokenAuth` middleware, tokens stored in `agent_tokens` (project-scoped). Tasks use atomic lease fields (`leased_by`, `lease_token`, `leased_until`, `claimed_at`) to prevent double-claiming. Prompt selection logic lives in `app/Services/AgentBundleService.php`.
+**Agent types**: `claude_code`, `cursor2`, `deepseek`, `openclaw`, `human`.
+
+**Task priorities**: Integer constants — `LOW=1`, `MEDIUM=3`, `HIGH=5`.
+
+**Agent API** (`routes/api.php`, prefix `/api/agent`): Bearer-token auth via `AgentTokenAuth` middleware (tokens in `agent_tokens`, project-scoped or null for unrestricted). Six endpoints: `next` (find eligible task), `claim` (acquire 60-min lease), `bundle` (task context + prompt), `logs`, `artifacts`, `status`. Tasks use optimistic locking via lease fields (`leased_by`, `lease_token`, `leased_until`, `claimed_at`) to prevent double-claiming. Lease auto-clears on Review/Done transition. Expired leases recovered by `agent:recover-leases` command.
+
+**Prompt system**: `TaskPrompt` records versioned per `(task_id, agent_type, version)` unique constraint. `AgentBundleService` resolves prompts by returning the latest version, or generating a default from task fields. All prompts get a "Work Log Report" footer appended.
+
+**Webhooks**: Tasks reaching `Ready` status dispatch `task.ready` webhook events to registered project endpoints.
 
 **File storage**: Private files use the `projecthub_private` disk (local, not public). Served through `ProjectFileController` with auth checks.
 
-**Backlog import/export** (V3 JSON): `BacklogReplaceService` soft-deletes existing data and rebuilds in a transaction, saving a `BacklogBackup` snapshot first. Services in `app/Services/ImportV3/` and `app/Services/ExportV3/`.
+**Backlog import/export** (V3 JSON): `BacklogReplaceService` soft-deletes existing data and rebuilds in a transaction, saving a `BacklogBackup` snapshot first. Import uses two-pass resolution: first upserts entities (lookup by id, external_key, or code), then validates dependencies with non-fatal warnings. Soft-deleted records found via `withTrashed()` and restored rather than duplicated. Services in `app/Services/ImportV3/` and `app/Services/ExportV3/`.
 
-**i18n**: Locale resolved via GeoIP (MaxMind DB, `config/geoip.php`) or `Accept-Language` header. Middleware in `app/Http/Middleware/`. Supported locales in `config/locale.php`.
+**V3 field mappings** (DB ↔ JSON): `estimate_size` ↔ `estimate`, `artifact_refs` ↔ `artifacts`, `review_metadata` ↔ `review`, `assignee_value` ↔ `assignee`.
 
-# ProjectHub - Project Instructions
+**i18n**: Locale cascade: query param `?lang=` → cookie (180-day) → GeoIP (MaxMind) → `Accept-Language` header → config default. Supported: `zh-TW`, `en`. Middleware: `DetectLocale`.
 
 ## CI/CD
 
-For all CI/CD setup, deployment scripts, GitHub Actions workflows, and GitHub Secrets configuration, follow the guide at `docs/CI_CD_GUIDE.md`. This guide is the single source of truth for:
-
-- deploy.sh and auto-deploy-cron.sh templates
-- GitHub Actions CI/CD workflow (.github/workflows/ci.yml)
-- GitHub Secrets setup (DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY)
-- SSH key setup for deploy
-- .env.example for CI testing
-- docker-compose.yml patterns
-- Common mistakes to avoid
-
-When setting up CI/CD for this project or any new fincosoft project, read and follow `docs/CI_CD_GUIDE.md` before writing any deployment scripts or workflows.
+For all CI/CD setup, deployment scripts, GitHub Actions workflows, and GitHub Secrets configuration, follow the guide at `docs/CI_CD_GUIDE.md`. This is the single source of truth for deploy scripts, Actions workflows, secrets setup, and Docker Compose patterns.
 
 ## Key Rules
 

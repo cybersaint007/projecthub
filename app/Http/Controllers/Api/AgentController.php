@@ -19,13 +19,13 @@ use Illuminate\Support\Str;
 class AgentController extends Controller
 {
     /** Statuses eligible for agent pickup. */
-    private const CLAIMABLE_STATUSES = ['TODO', 'Ready'];
+    private const CLAIMABLE_STATUSES = ['Ready', 'Backlog'];
 
     /** Allowed status transitions from agent. */
     private const ALLOWED_STATUS_TRANSITIONS = [
-        'TODO' => ['InProgress'],
+        'Backlog' => ['InProgress'],
         'Ready' => ['InProgress'],
-        'InProgress' => ['Review', 'Done'],
+        'InProgress' => ['Review', 'Done', 'Backlog'],
         'Review' => ['InProgress', 'Done'],
     ];
 
@@ -202,7 +202,7 @@ class AgentController extends Controller
         $oldStatus = $task->status;
         $task->update(['status' => $data['status']]);
 
-        if (in_array($data['status'], ['Done', 'Review'], true)) {
+        if (in_array($data['status'], ['Done', 'Review', 'Ready', 'Backlog'], true)) {
             $task->clearLease();
         }
 

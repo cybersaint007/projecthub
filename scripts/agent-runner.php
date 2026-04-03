@@ -43,10 +43,11 @@ $config = [
     'agent_type'     => getenv('AGENT_TYPE')      ?: 'claude_code',
     'worker_id'      => getenv('AGENT_WORKER_ID') ?: gethostname(),
     'repo_path'      => getenv('AGENT_REPO_PATH') ?: getcwd(),
-    'poll_interval'  => (int)(getenv('AGENT_POLL_INTERVAL') ?: 30),
-    'dry_run'        => $dryRun,
+    'poll_interval'       => (int)(getenv('AGENT_POLL_INTERVAL') ?: 30),
+    'rate_limit_cooldown' => (int)(getenv('AGENT_RATE_LIMIT_COOLDOWN') ?: 300),
+    'dry_run'             => $dryRun,
     // Extra flags appended to the claude invocation (space-separated)
-    'claude_flags'   => getenv('AGENT_CLAUDE_FLAGS') ?: '--dangerously-skip-permissions',
+    'claude_flags'        => getenv('AGENT_CLAUDE_FLAGS') ?: '--dangerously-skip-permissions',
 ];
 
 // Validate repo path
@@ -238,7 +239,7 @@ while (true) {
     // ── Step 7: Execute Claude CLI ────────────────────────────────────────────
     log_msg("Executing claude on task #{$taskId}…");
 
-    $exitCode = executeClaudeTask(
+    ['exit_code' => $exitCode, 'declared_complete' => $agentDeclaredComplete, 'rate_limited' => $rateLimited, 'reset_at' => $resetAt] = executeClaudeTask(
         claudeBin:   $claudeBin,
         repoPath:    $config['repo_path'],
         promptFile:  $promptFile,
@@ -248,13 +249,32 @@ while (true) {
         config:      $config
     );
 
-    // ── Step 8: Update status based on exit code ──────────────────────────────
-    if ($exitCode === 0) {
+    // ── Step 8: Update status based on exit code + completion marker ─────────
+    if ($exitCode !== 0) {
+        patchStatus($config, $taskId, $leaseToken, 'Backlog');
+        log_msg("Task #{$taskId} moved to Backlog (exit code {$exitCode}).");
+    } elseif ($agentDeclaredComplete) {
         patchStatus($config, $taskId, $leaseToken, 'Review');
         log_msg("Task #{$taskId} moved to Review.");
     } else {
-        patchStatus($config, $taskId, $leaseToken, 'Ready');
-        log_msg("Task #{$taskId} returned to Ready (exit code {$exitCode}).");
+        patchStatus($config, $taskId, $leaseToken, 'Backlog');
+        log_msg("Task #{$taskId} moved to Backlog (agent did not declare COMPLETION: COMPLETE).");
+    }
+
+    // ── Rate-limit cooldown ──────────────────────────────────────────────────
+    if ($rateLimited) {
+        if ($resetAt !== null) {
+            $now = new \DateTimeImmutable('now', $resetAt->getTimezone());
+            $waitSeconds = $resetAt->getTimestamp() - $now->getTimestamp();
+            if ($waitSeconds > 0) {
+                log_msg("Rate/usage limit detected. Sleeping until {$resetAt->format('Y-m-d g:ia T')} ({$waitSeconds}s)…");
+                sleep($waitSeconds);
+            }
+        } else {
+            $cooldown = (int)($config['rate_limit_cooldown'] ?? 300);
+            log_msg("Rate/usage limit detected (no reset time found). Cooling down for {$cooldown}s…");
+            sleep($cooldown);
+        }
     }
 
     // ── Step 9: Clean up ──────────────────────────────────────────────────────
@@ -274,7 +294,7 @@ while (true) {
 
 /**
  * Execute Claude CLI on the given prompt file, streaming output as task logs.
- * Returns the process exit code.
+ * Returns ['exit_code' => int, 'declared_complete' => bool].
  */
 function executeClaudeTask(
     string $claudeBin,
@@ -284,7 +304,7 @@ function executeClaudeTask(
     int    $taskId,
     string $leaseToken,
     array  $config
-): int {
+): array {
     // Build the command — claude reads prompt from stdin (temp file)
     $flagParts = array_filter(array_map('trim', explode(' ', $claudeFlags)));
     $flagParts = array_merge(['--print'], array_diff($flagParts, ['--print']));
@@ -301,17 +321,18 @@ function executeClaudeTask(
     if (!is_resource($proc)) {
         log_msg("Failed to start claude process.");
         postLog($config, $taskId, $leaseToken, 'error', "Failed to start claude process.");
-        return 1;
+        return ['exit_code' => 1, 'declared_complete' => false, 'rate_limited' => false, 'reset_at' => null];
     }
 
     stream_set_blocking($pipes[1], false);
     stream_set_blocking($pipes[2], false);
 
-    $stdoutBuf   = '';
-    $stderrBuf   = '';
-    $stdoutDone  = false;
-    $stderrDone  = false;
-    $capturedExit = null;
+    $stdoutBuf      = '';
+    $stderrBuf      = '';
+    $fullStderr     = '';
+    $stdoutDone     = false;
+    $stderrDone     = false;
+    $capturedExit   = null;
 
     while (!$stdoutDone || !$stderrDone) {
         $readStreams = [];
@@ -345,6 +366,7 @@ function executeClaudeTask(
                 } else {
                     // Stream stderr line-by-line so errors appear immediately.
                     $stderrBuf .= $chunk;
+                    $fullStderr .= $chunk;
                     $stderrBuf = flushLinesToLog($config, $taskId, $leaseToken, 'error', $stderrBuf);
                 }
             }
@@ -359,6 +381,10 @@ function executeClaudeTask(
                         $marker = "## Work Log Report";
                         $pos = strrpos($cleaned, $marker);
                         $workLog = $pos !== false ? trim(substr($cleaned, $pos)) : $cleaned;
+
+                        // Check for COMPLETION: COMPLETE marker in the output
+                        $declaredComplete = (bool)preg_match('/COMPLETION:\s*COMPLETE\b/i', $cleaned);
+
                         postLog($config, $taskId, $leaseToken, 'info', $workLog);
                         $stdoutBuf = '';
                     }
@@ -386,7 +412,36 @@ function executeClaudeTask(
     }
 
     $procClose = proc_close($proc);
-    return $capturedExit ?? $procClose;
+
+    // Detect rate/usage limit and parse reset time from stderr
+    // Expected format: "You've hit your limit · resets 3am (Asia/Taipei)"
+    $stderrClean = stripAnsi($fullStderr);
+    $rateLimited = false;
+    $resetAt = null;
+
+    if (preg_match('/resets\s+(\d{1,2}(?::\d{2})?\s*[ap]m)\s*\(([^)]+)\)/i', $stderrClean, $m)) {
+        $rateLimited = true;
+        try {
+            $tz = new \DateTimeZone(str_replace('/', '/', trim($m[2])));
+            $resetAt = new \DateTimeImmutable($m[1], $tz);
+            // If the parsed time is in the past, it means tomorrow
+            if ($resetAt <= new \DateTimeImmutable('now', $tz)) {
+                $resetAt = $resetAt->modify('+1 day');
+            }
+        } catch (\Exception $e) {
+            // Timezone parse failed — fall back to fixed cooldown
+            $resetAt = null;
+        }
+    } elseif (preg_match('/hit your limit|rate.?limit|usage.?limit|too many requests|429|overloaded/i', $stderrClean)) {
+        $rateLimited = true;
+    }
+
+    return [
+        'exit_code' => $capturedExit ?? $procClose,
+        'declared_complete' => $declaredComplete ?? false,
+        'rate_limited' => $rateLimited,
+        'reset_at' => $resetAt,
+    ];
 }
 
 /**
@@ -481,7 +536,6 @@ function apiRequest(string $method, string $url, array $config, ?array $data = n
     $body    = (string)curl_exec($ch);
     $code    = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlErr = curl_error($ch);
-    curl_close($ch);
 
     return [
         'code'  => $code,

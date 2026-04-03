@@ -41,8 +41,8 @@ class AgentApiTest extends TestCase
 
     public function test_next_task_returns_earliest_eligible(): void
     {
-        $t1 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'TODO', 'position' => 20]);
-        $t2 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'TODO', 'position' => 10]);
+        $t1 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'position' => 20]);
+        $t2 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'position' => 10]);
         Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'InProgress', 'position' => 5]);
 
         $response = $this->getJson('/api/agent/projects/' . $this->project->id . '/tasks/next', $this->headers());
@@ -51,10 +51,21 @@ class AgentApiTest extends TestCase
         $response->assertJsonPath('task.id', $t2->id);
     }
 
+    public function test_next_task_picks_up_backlog(): void
+    {
+        $t1 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Backlog', 'position' => 10]);
+        Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'TODO', 'position' => 5]);
+
+        $response = $this->getJson('/api/agent/projects/' . $this->project->id . '/tasks/next', $this->headers());
+
+        $response->assertOk();
+        $response->assertJsonPath('task.id', $t1->id);
+    }
+
     public function test_next_task_filters_by_agent_type(): void
     {
-        Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'TODO', 'agent' => 'human', 'position' => 10]);
-        $t2 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'TODO', 'agent' => 'claude_code', 'position' => 20]);
+        Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'agent' => 'human', 'position' => 10]);
+        $t2 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'agent' => 'claude_code', 'position' => 20]);
 
         $response = $this->getJson('/api/agent/projects/' . $this->project->id . '/tasks/next?agent_type=claude_code', $this->headers());
 
@@ -66,11 +77,11 @@ class AgentApiTest extends TestCase
     {
         Task::factory()->create([
             'epic_id' => $this->epic->id,
-            'status' => 'TODO',
+            'status' => 'Ready',
             'position' => 10,
             'leased_until' => now()->addHour(),
         ]);
-        $t2 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'TODO', 'position' => 20]);
+        $t2 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'position' => 20]);
 
         $response = $this->getJson('/api/agent/projects/' . $this->project->id . '/tasks/next', $this->headers());
 
@@ -207,27 +218,56 @@ class AgentApiTest extends TestCase
 
     public function test_status_update_validates_transitions(): void
     {
-        $task = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'TODO']);
+        $task = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready']);
 
         $claimResponse = $this->postJson('/api/agent/tasks/' . $task->id . '/claim', [
             'worker_id' => 'w1',
         ], $this->headers());
         $leaseToken = $claimResponse->json('lease_token');
 
-        // Invalid: TODO -> Done
+        // Invalid: Ready -> Done
         $response = $this->patchJson('/api/agent/tasks/' . $task->id . '/status', [
             'lease_token' => $leaseToken,
             'status' => 'Done',
         ], $this->headers());
         $response->assertStatus(422);
 
-        // Valid: TODO -> InProgress
+        // Valid: Ready -> InProgress
         $response = $this->patchJson('/api/agent/tasks/' . $task->id . '/status', [
             'lease_token' => $leaseToken,
             'status' => 'InProgress',
         ], $this->headers());
         $response->assertOk();
         $this->assertSame('InProgress', $task->fresh()->status);
+    }
+
+    public function test_agent_can_release_task_to_backlog(): void
+    {
+        $task = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready']);
+
+        $claimResponse = $this->postJson('/api/agent/tasks/' . $task->id . '/claim', [
+            'worker_id' => 'w1',
+        ], $this->headers());
+        $leaseToken = $claimResponse->json('lease_token');
+
+        // Move to InProgress first
+        $this->patchJson('/api/agent/tasks/' . $task->id . '/status', [
+            'lease_token' => $leaseToken,
+            'status' => 'InProgress',
+        ], $this->headers())->assertOk();
+
+        // Release to Backlog (task could not be completed)
+        $response = $this->patchJson('/api/agent/tasks/' . $task->id . '/status', [
+            'lease_token' => $leaseToken,
+            'status' => 'Backlog',
+        ], $this->headers());
+
+        $response->assertOk();
+        $fresh = $task->fresh();
+        $this->assertSame('Backlog', $fresh->status);
+        $this->assertNull($fresh->lease_token);
+        $this->assertNull($fresh->leased_by);
+        $this->assertNull($fresh->leased_until);
     }
 
     public function test_invalid_token_returns_401(): void
