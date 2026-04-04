@@ -92,6 +92,20 @@ class EpicController extends Controller
         });
     }
 
+    public function bulkUpdateAgent(Request $request, Epic $epic)
+    {
+        $this->authorizeProject($request->user(), $epic->project);
+
+        $data = $request->validate([
+            'agent' => 'required|string|in:' . implode(',', \App\Models\Task::AGENTS),
+        ]);
+
+        $updated = $epic->tasks()->update(['agent' => $data['agent']]);
+
+        return redirect()->route('epics.show', $epic)
+            ->with('status', "Updated {$updated} tasks to agent: {$data['agent']}.");
+    }
+
     public function kanban(Request $request, Epic $epic)
     {
         $this->authorizeProject($request->user(), $epic->project);

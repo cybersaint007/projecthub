@@ -40,12 +40,26 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium">{{ __('ui.tasks') }} ({{ $epic->tasks->count() }})</h3>
                 @if($epic->tasks->isNotEmpty())
-                    <select x-model="statusFilter" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">{{ __('ui.all_statuses') }}</option>
-                        @foreach(\App\Models\Task::STATUSES as $s)
-                            <option value="{{ $s }}">{{ $s }}</option>
-                        @endforeach
-                    </select>
+                    <div class="flex items-center gap-3">
+                        <form method="POST" action="{{ route('epics.bulk-agent', $epic) }}" class="flex items-center gap-2"
+                              onsubmit="return confirm('Change agent type for all tasks in this epic?')">
+                            @csrf
+                            @method('PATCH')
+                            <label class="text-sm text-gray-500">{{ __('ui.bulk_set_agent') }}:</label>
+                            <select name="agent" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                @foreach(\App\Models\Task::AGENTS as $a)
+                                    <option value="{{ $a }}">{{ $a }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ __('ui.apply') }}</button>
+                        </form>
+                        <select x-model="statusFilter" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">{{ __('ui.all_statuses') }}</option>
+                            @foreach(\App\Models\Task::STATUSES as $s)
+                                <option value="{{ $s }}">{{ $s }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 @endif
             </div>
             @if($epic->tasks->isEmpty())

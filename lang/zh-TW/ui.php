@@ -268,4 +268,8 @@ return [
 
     // Language
     'language' => '語言',
+
+    // Bulk actions
+    'bulk_set_agent' => '批次設定代理類型為',
+    'apply' => '套用',
 ];

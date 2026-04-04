@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/epics/{epic}', [EpicController::class, 'destroy'])->name('epics.destroy');
     Route::post('/epics/{id}/restore', [EpicController::class, 'restore'])->name('epics.restore');
     Route::get('/epics/{epic}/kanban', [EpicController::class, 'kanban'])->name('epics.kanban');
+    Route::patch('/epics/{epic}/bulk-agent', [EpicController::class, 'bulkUpdateAgent'])->name('epics.bulk-agent');
 
     // Tasks
     Route::get('/epics/{epic}/tasks/create', [TaskController::class, 'create'])->name('tasks.create');

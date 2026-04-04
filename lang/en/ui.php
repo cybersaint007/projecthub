@@ -268,4 +268,8 @@ return [
 
     // Language
     'language' => 'Language',
+
+    // Bulk actions
+    'bulk_set_agent' => 'Set all agents to',
+    'apply' => 'Apply',
 ];
