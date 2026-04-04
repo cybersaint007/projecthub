@@ -39,6 +39,7 @@ class AgentController extends Controller
         $request->validate([
             'worker_id' => 'sometimes|string|max:255',
             'agent_type' => 'sometimes|string|in:' . implode(',', Task::AGENTS),
+            'epic_id' => 'sometimes|integer|exists:epics,id',
         ]);
 
         $query = Task::query()
@@ -57,6 +58,10 @@ class AgentController extends Controller
 
         if ($request->filled('agent_type')) {
             $query->where('agent', $request->input('agent_type'));
+        }
+
+        if ($request->filled('epic_id')) {
+            $query->where('tasks.epic_id', $request->input('epic_id'));
         }
 
         $task = $query->first();

@@ -41,6 +41,7 @@ $config = [
     'token'          => requireEnv('AGENT_TOKEN'),
     'project_id'     => requireEnv('AGENT_PROJECT_ID'),
     'agent_type'     => getenv('AGENT_TYPE')      ?: 'claude_code',
+    'epic_id'        => getenv('AGENT_EPIC_ID')   ?: null,
     'worker_id'      => getenv('AGENT_WORKER_ID') ?: gethostname(),
     'repo_path'      => getenv('AGENT_REPO_PATH') ?: getcwd(),
     'poll_interval'       => (int)(getenv('AGENT_POLL_INTERVAL') ?: 30),
@@ -92,6 +93,7 @@ if (function_exists('pcntl_async_signals')) {
 log_msg("ProjectHub Agent Runner v" . RUNNER_VERSION);
 log_msg("Worker:    {$config['worker_id']}");
 log_msg("Project:   {$config['project_id']}");
+log_msg("Epic:      " . ($config['epic_id'] ?? 'all'));
 log_msg("Agent:     {$config['agent_type']}");
 log_msg("Repo:      {$config['repo_path']}");
 log_msg("API:       {$config['api_base']}");
@@ -116,6 +118,10 @@ while (true) {
         urlencode($config['worker_id']),
         urlencode($config['agent_type'])
     );
+
+    if ($config['epic_id']) {
+        $nextUrl .= '&epic_id=' . urlencode($config['epic_id']);
+    }
 
     $nextResp = apiRequest('GET', $nextUrl, $config);
 
