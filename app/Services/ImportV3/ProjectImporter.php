@@ -278,9 +278,12 @@ class ProjectImporter
         }
 
         // Track for second-pass dependency validation
-        if (!empty($d['external_key'])) {
+        if (!empty($d['external_key']) && (!empty($d['dependencies']) || !empty($d['blocking']))) {
+            if (!isset($this->taskDepsMap[$d['external_key']])) {
+                $this->taskDepsMap[$d['external_key']] = ['deps' => [], 'blocking' => []];
+            }
             if (!empty($d['dependencies'])) {
-                $this->taskDepsMap[$d['external_key']] = ['deps' => (array) $d['dependencies'], 'blocking' => []];
+                $this->taskDepsMap[$d['external_key']]['deps'] = (array) $d['dependencies'];
             }
             if (!empty($d['blocking'])) {
                 $this->taskDepsMap[$d['external_key']]['blocking'] = (array) $d['blocking'];
