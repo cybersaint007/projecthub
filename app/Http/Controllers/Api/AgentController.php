@@ -23,6 +23,7 @@ class AgentController extends Controller
 
     /** Allowed status transitions from agent. */
     private const ALLOWED_STATUS_TRANSITIONS = [
+        'TODO' => ['InProgress'],
         'Backlog' => ['InProgress'],
         'Ready' => ['InProgress'],
         'InProgress' => ['Review', 'Done', 'Backlog'],
