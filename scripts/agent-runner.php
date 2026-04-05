@@ -169,6 +169,19 @@ while (true) {
 
     log_msg("Found task #{$task['id']}: {$task['title']} (status: {$task['status']})");
 
+    // ── Dry-run: show task info without claiming ──────────────────────────────
+    if ($config['dry_run']) {
+        log_msg("DRY-RUN: Would claim and execute task #{$task['id']}: {$task['title']} (status: {$task['status']})");
+        log_msg("Dry-run complete. Task NOT claimed, NOT executed, NOT moved to InProgress.");
+
+        if ($runOnce) {
+            log_msg("--once flag set. Exiting.");
+            exit(0);
+        }
+        sleep(2);
+        continue;
+    }
+
     // ── Step 2: Claim the task ────────────────────────────────────────────────
     $claimUrl  = "{$config['api_base']}/api/agent/tasks/{$task['id']}/claim";
     $claimResp = apiRequest('POST', $claimUrl, $config, ['worker_id' => $config['worker_id']]);
@@ -224,22 +237,6 @@ while (true) {
         log_msg("Bundle prompt is empty for task #{$taskId}. Releasing.");
         patchStatus($config, $taskId, $leaseToken, 'Ready');
         sleep(5);
-        continue;
-    }
-
-    // ── Dry-run: print bundle and skip execution ───────────────────────────────
-    if ($config['dry_run']) {
-        log_msg("=== DRY-RUN: Bundle for task #{$taskId}: {$taskTitle} ===");
-        log_msg("--- Prompt ---");
-        echo $promptContent . "\n";
-        log_msg("--- End Prompt ---");
-        log_msg("Dry-run complete. Task NOT executed, NOT moved to InProgress.");
-
-        if ($runOnce) {
-            log_msg("--once flag set. Exiting.");
-            exit(0);
-        }
-        sleep(2);
         continue;
     }
 
