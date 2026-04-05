@@ -18,8 +18,8 @@ use Illuminate\Support\Str;
 
 class AgentController extends Controller
 {
-    /** Statuses eligible for agent pickup. */
-    private const CLAIMABLE_STATUSES = ['Ready', 'Backlog'];
+    /** Statuses excluded from agent pickup. */
+    private const EXCLUDED_STATUSES = ['Done', 'Review'];
 
     /** Allowed status transitions from agent. */
     private const ALLOWED_STATUS_TRANSITIONS = [
@@ -46,7 +46,7 @@ class AgentController extends Controller
             ->join('epics', 'epics.id', '=', 'tasks.epic_id')
             ->where('epics.project_id', $project->id)
             ->whereNull('epics.deleted_at')
-            ->whereIn('tasks.status', self::CLAIMABLE_STATUSES)
+            ->whereNotIn('tasks.status', self::EXCLUDED_STATUSES)
             ->where(function ($q) {
                 $q->whereNull('tasks.leased_until')
                     ->orWhere('tasks.leased_until', '<', now());
