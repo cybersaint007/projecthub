@@ -233,6 +233,7 @@ class ProjectImporter
 
         // V3 fields
         if (isset($d['external_key']))   $task->external_key   = $d['external_key'];
+        if (isset($d['agent']))          $task->agent          = $d['agent'];
         if (isset($d['stage']))          $task->stage          = $d['stage'];
         if (isset($d['execution_mode'])) $task->execution_mode = $d['execution_mode'];
         if (isset($d['estimate'])) {

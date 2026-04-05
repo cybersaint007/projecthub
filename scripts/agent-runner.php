@@ -126,15 +126,37 @@ while (true) {
     $nextResp = apiRequest('GET', $nextUrl, $config);
 
     if ($nextResp['error']) {
-        log_msg("Network error polling for task: {$nextResp['error']}");
+        log_msg("ERROR: Network error polling for task: {$nextResp['error']}");
         sleep($config['poll_interval']);
         continue;
     }
 
     if ($nextResp['code'] !== 200) {
-        log_msg("Unexpected response from /tasks/next (HTTP {$nextResp['code']}): {$nextResp['body']}");
+        $errMsg = $nextResp['data']['message'] ?? $nextResp['data']['error'] ?? null;
+        $errDetail = '';
+        if (isset($nextResp['data']['errors']) && is_array($nextResp['data']['errors'])) {
+            $parts = [];
+            foreach ($nextResp['data']['errors'] as $field => $msgs) {
+                $parts[] = $field . ': ' . (is_array($msgs) ? implode(', ', $msgs) : $msgs);
+            }
+            $errDetail = ' — ' . implode('; ', $parts);
+        }
+        $display = $errMsg ? "{$errMsg}{$errDetail}" : $nextResp['body'];
+        log_msg("ERROR: Unexpected response from /tasks/next (HTTP {$nextResp['code']}): {$display}");
         sleep($config['poll_interval']);
         continue;
+    }
+
+    // Show any warnings returned with the 200 response
+    if (!empty($nextResp['data']['warnings'])) {
+        $warnings = $nextResp['data']['warnings'];
+        if (is_array($warnings)) {
+            foreach ($warnings as $warning) {
+                log_msg("WARNING: {$warning}");
+            }
+        } else {
+            log_msg("WARNING: {$warnings}");
+        }
     }
 
     $task = $nextResp['data']['task'] ?? null;
