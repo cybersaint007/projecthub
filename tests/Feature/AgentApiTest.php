@@ -43,7 +43,7 @@ class AgentApiTest extends TestCase
     {
         $t1 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'position' => 20]);
         $t2 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'position' => 10]);
-        Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'InProgress', 'position' => 5]);
+        Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Review', 'position' => 5]);
 
         $response = $this->getJson('/api/agent/projects/' . $this->project->id . '/tasks/next', $this->headers());
 
@@ -53,8 +53,8 @@ class AgentApiTest extends TestCase
 
     public function test_next_task_picks_up_backlog(): void
     {
-        $t1 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Backlog', 'position' => 10]);
-        Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'TODO', 'position' => 5]);
+        $t1 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Backlog', 'position' => 5]);
+        Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'TODO', 'position' => 10]);
 
         $response = $this->getJson('/api/agent/projects/' . $this->project->id . '/tasks/next', $this->headers());
 
