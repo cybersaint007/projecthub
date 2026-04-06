@@ -198,6 +198,15 @@ return [
     'review_pass'            => '通過',
     'review_changes'         => '要求修改',
 
+    // Truth Audit Checklist
+    'truth_audit_checklist'  => '真實性稽核',
+    'truth_audit_hint'       => '標記為完成前，四項都必須勾選。',
+    'truth_audit_required'   => '標記為完成前，必須確認所有四項稽核（路由、介面、服務、測試）均已完成。',
+    'audit_route_exists'     => '路由已存在',
+    'audit_ui_exists'        => '介面／視圖已存在',
+    'audit_service_exists'   => '服務／控制器已存在',
+    'audit_test_exists'      => '測試已存在',
+
     // Admin users
     'manage_users'               => '管理使用者',
     'new_user'                   => '新增使用者',
@@ -266,4 +275,20 @@ return [
 
     // Language
     'language' => '語言',
+
+    // AP Reports
+    'nav_ap_reports'          => 'AP 報表',
+    'aged_ap_title'           => '應付帳款帳齡報表',
+    'aged_ap_as_of'           => '截至日期',
+    'aged_ap_run'             => '執行報表',
+    'aged_ap_no_data'         => '目前無未付廠商帳款。',
+    'aged_ap_vendor'          => '廠商',
+    'aged_ap_total'           => '合計',
+    'aged_ap_totals'          => '總計',
+    'aged_ap_note'            => '顯示截至 :date 的未付廠商餘額。',
+    'aged_bucket_current'     => '未到期',
+    'aged_bucket_1_30'        => '1–30 天',
+    'aged_bucket_31_60'       => '31–60 天',
+    'aged_bucket_61_90'       => '61–90 天',
+    'aged_bucket_over_90'     => '超過 90 天',
 ];

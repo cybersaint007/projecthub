@@ -22,6 +22,9 @@
                         <x-nav-link :href="route('agent.dashboard')" :active="request()->routeIs('agent.dashboard')">
                             Agent Dashboard
                         </x-nav-link>
+                        <x-nav-link :href="route('ap.aged')" :active="request()->routeIs('ap.*')">
+                            {{ __('ui.nav_ap_reports') }}
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -74,6 +77,7 @@
             @if(Auth::user()->isAdmin())
                 <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">{{ __('ui.nav_users') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('agent.dashboard')" :active="request()->routeIs('agent.dashboard')">Agent Dashboard</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('ap.aged')" :active="request()->routeIs('ap.*')">{{ __('ui.nav_ap_reports') }}</x-responsive-nav-link>
             @endif
         </div>
         <div class="pt-4 pb-1 border-t border-gray-200">

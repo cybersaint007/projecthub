@@ -15,6 +15,7 @@ use App\Http\Controllers\AgentDashboardController;
 use App\Http\Controllers\TaskReviewController;
 use App\Http\Controllers\AgentTokenController;
 use App\Http\Controllers\WebhookEndpointController;
+use App\Http\Controllers\ApReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -109,6 +110,9 @@ Route::middleware('auth')->group(function () {
 
     // Agent dashboard (admin-only, enforced in controller)
     Route::middleware('admin')->get('/agent/dashboard', [AgentDashboardController::class, 'index'])->name('agent.dashboard');
+
+    // AP Reports (admin-only, enforced in controller)
+    Route::middleware('admin')->get('/ap/aged', [ApReportController::class, 'agedAp'])->name('ap.aged');
 
 });
 

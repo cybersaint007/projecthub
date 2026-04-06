@@ -198,6 +198,15 @@ return [
     'review_pass'            => 'PASS',
     'review_changes'         => 'CHANGES REQUESTED',
 
+    // Truth Audit Checklist
+    'truth_audit_checklist'  => 'Truth Audit',
+    'truth_audit_hint'       => 'All four must be checked to mark as Done.',
+    'truth_audit_required'   => 'All four truth-audit checks (route, UI, service, test) must be confirmed before marking as Done.',
+    'audit_route_exists'     => 'Route exists',
+    'audit_ui_exists'        => 'UI / view exists',
+    'audit_service_exists'   => 'Service / controller exists',
+    'audit_test_exists'      => 'Test exists',
+
     // Admin users
     'manage_users'               => 'Manage Users',
     'new_user'                   => 'New User',
@@ -266,4 +275,20 @@ return [
 
     // Language
     'language' => 'Language',
+
+    // AP Reports
+    'nav_ap_reports'          => 'AP Reports',
+    'aged_ap_title'           => 'Aged Accounts Payable',
+    'aged_ap_as_of'           => 'As of',
+    'aged_ap_run'             => 'Run Report',
+    'aged_ap_no_data'         => 'No outstanding AP invoices found.',
+    'aged_ap_vendor'          => 'Vendor',
+    'aged_ap_total'           => 'Total',
+    'aged_ap_totals'          => 'Totals',
+    'aged_ap_note'            => 'Showing unpaid vendor balances as of :date.',
+    'aged_bucket_current'     => 'Current',
+    'aged_bucket_1_30'        => '1–30 Days',
+    'aged_bucket_31_60'       => '31–60 Days',
+    'aged_bucket_61_90'       => '61–90 Days',
+    'aged_bucket_over_90'     => 'Over 90 Days',
 ];
