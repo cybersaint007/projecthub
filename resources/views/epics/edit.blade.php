@@ -28,5 +28,18 @@
                 <a href="{{ route('epics.show', $epic) }}" class="text-sm text-gray-600 hover:underline">{{ __('ui.cancel') }}</a>
             </div>
         </form>
+
+        @if(Auth::user()->isAdmin())
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <form method="POST" action="{{ route('epics.destroy', $epic) }}">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" onclick="return confirm('{{ __('ui.confirm_delete_epic') }}')"
+                        class="px-3 py-2 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50">
+                        {{ __('ui.delete_epic') }}
+                    </button>
+                </form>
+            </div>
+        @endif
     </div>
 </x-app-layout>

@@ -4,6 +4,9 @@ use App\Http\Controllers\Api\AgentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('agent')->middleware('agent.token')->group(function () {
+    // Get project info (name, code)
+    Route::get('/projects/{project}', [AgentController::class, 'projectInfo']);
+
     // Find next eligible task in a project
     Route::get('/projects/{project}/tasks/next', [AgentController::class, 'nextTask']);
 

@@ -18,19 +18,31 @@ use Illuminate\Support\Str;
 
 class AgentController extends Controller
 {
-    /** Statuses eligible for agent pickup. */
-    private const CLAIMABLE_STATUSES = ['TODO', 'Ready'];
+    /** Statuses excluded from agent pickup. */
+    private const EXCLUDED_STATUSES = ['Done', 'Review'];
 
     /** Allowed status transitions from agent. */
     private const ALLOWED_STATUS_TRANSITIONS = [
         'TODO' => ['InProgress'],
+        'Backlog' => ['InProgress'],
         'Ready' => ['InProgress'],
-        'InProgress' => ['Review', 'Done'],
+        'InProgress' => ['Review', 'Done', 'Backlog'],
         'Review' => ['InProgress', 'Done'],
     ];
 
     /** Default lease duration in minutes. */
     private const LEASE_DURATION_MINUTES = 60;
+
+    public function projectInfo(Request $request, Project $project): JsonResponse
+    {
+        $this->authorizeProject($request, $project);
+
+        return response()->json([
+            'id' => $project->id,
+            'code' => $project->code,
+            'name' => $project->name,
+        ]);
+    }
 
     public function nextTask(Request $request, Project $project): JsonResponse
     {
@@ -39,13 +51,14 @@ class AgentController extends Controller
         $request->validate([
             'worker_id' => 'sometimes|string|max:255',
             'agent_type' => 'sometimes|string|in:' . implode(',', Task::AGENTS),
+            'epic_id' => 'sometimes|integer|exists:epics,id',
         ]);
 
         $query = Task::query()
             ->join('epics', 'epics.id', '=', 'tasks.epic_id')
             ->where('epics.project_id', $project->id)
             ->whereNull('epics.deleted_at')
-            ->whereIn('tasks.status', self::CLAIMABLE_STATUSES)
+            ->whereNotIn('tasks.status', self::EXCLUDED_STATUSES)
             ->where(function ($q) {
                 $q->whereNull('tasks.leased_until')
                     ->orWhere('tasks.leased_until', '<', now());
@@ -53,10 +66,14 @@ class AgentController extends Controller
             ->whereNull('tasks.deleted_at')
             ->orderBy('epics.position')
             ->orderBy('tasks.position')
-            ->select('tasks.*');
+            ->select('tasks.*', 'epics.title as epic_title');
 
         if ($request->filled('agent_type')) {
             $query->where('agent', $request->input('agent_type'));
+        }
+
+        if ($request->filled('epic_id')) {
+            $query->where('tasks.epic_id', $request->input('epic_id'));
         }
 
         $task = $query->first();
@@ -73,6 +90,7 @@ class AgentController extends Controller
                 'agent' => $task->agent,
                 'priority' => $task->priority,
                 'position' => $task->position,
+                'epic_title' => $task->epic_title,
             ],
         ]);
     }
@@ -202,7 +220,7 @@ class AgentController extends Controller
         $oldStatus = $task->status;
         $task->update(['status' => $data['status']]);
 
-        if (in_array($data['status'], ['Done', 'Review'], true)) {
+        if (in_array($data['status'], ['Done', 'Review', 'Ready', 'Backlog'], true)) {
             $task->clearLease();
         }
 

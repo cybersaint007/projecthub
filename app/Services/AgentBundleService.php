@@ -113,6 +113,13 @@ Numbered steps a human reviewer can follow to confirm the work is correct:
 
 ### Notes
 Any caveats, known issues, follow-up tasks, or things the reviewer should pay attention to. If none, write "None."
+
+### Completion Status
+You MUST end your work log with exactly one of these lines:
+- `COMPLETION: COMPLETE` — you finished all requirements and the task is ready for review
+- `COMPLETION: INCOMPLETE` — you were unable to finish (blocked, ran out of context, partial work, etc.)
+
+Only mark COMPLETE if you are confident the acceptance criteria are met and tests pass (if applicable).
 MD;
     }
 

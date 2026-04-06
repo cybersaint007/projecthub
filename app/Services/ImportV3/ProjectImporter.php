@@ -109,6 +109,11 @@ class ProjectImporter
             }
         }
 
+        // Restore if soft-deleted — re-importing means the project should be active
+        if ($project->trashed()) {
+            $project->deleted_at = null;
+        }
+
         $project->save();
 
         $updated = !$created;
@@ -169,6 +174,11 @@ class ProjectImporter
             }
         }
 
+        // Restore if soft-deleted — re-importing means the epic should be active
+        if ($epic->trashed()) {
+            $epic->deleted_at = null;
+        }
+
         $epic->save();
 
         $created ? $this->epicsCreated++ : $this->epicsUpdated++;
@@ -183,6 +193,11 @@ class ProjectImporter
         }
         if (!empty($d['external_key'])) {
             $e = Epic::withTrashed()->where('external_key', $d['external_key'])->first();
+            if ($e) return $e;
+        }
+        // Fallback: match by title within the same project
+        if (!empty($d['title'])) {
+            $e = Epic::withTrashed()->where('project_id', $projectId)->where('title', $d['title'])->first();
             if ($e) return $e;
         }
         return null;
@@ -218,6 +233,7 @@ class ProjectImporter
 
         // V3 fields
         if (isset($d['external_key']))   $task->external_key   = $d['external_key'];
+        if (isset($d['agent']))          $task->agent          = $d['agent'];
         if (isset($d['stage']))          $task->stage          = $d['stage'];
         if (isset($d['execution_mode'])) $task->execution_mode = $d['execution_mode'];
         if (isset($d['estimate'])) {
@@ -263,13 +279,21 @@ class ProjectImporter
         }
 
         // Track for second-pass dependency validation
-        if (!empty($d['external_key'])) {
+        if (!empty($d['external_key']) && (!empty($d['dependencies']) || !empty($d['blocking']))) {
+            if (!isset($this->taskDepsMap[$d['external_key']])) {
+                $this->taskDepsMap[$d['external_key']] = ['deps' => [], 'blocking' => []];
+            }
             if (!empty($d['dependencies'])) {
-                $this->taskDepsMap[$d['external_key']] = ['deps' => (array) $d['dependencies'], 'blocking' => []];
+                $this->taskDepsMap[$d['external_key']]['deps'] = (array) $d['dependencies'];
             }
             if (!empty($d['blocking'])) {
                 $this->taskDepsMap[$d['external_key']]['blocking'] = (array) $d['blocking'];
             }
+        }
+
+        // Restore if soft-deleted — re-importing means the task should be active
+        if ($task->trashed()) {
+            $task->deleted_at = null;
         }
 
         $task->save();
@@ -286,6 +310,11 @@ class ProjectImporter
         }
         if (!empty($d['external_key'])) {
             $t = Task::withTrashed()->where('external_key', $d['external_key'])->first();
+            if ($t) return $t;
+        }
+        // Fallback: match by title within the same epic
+        if (!empty($d['title'])) {
+            $t = Task::withTrashed()->where('epic_id', $epicId)->where('title', $d['title'])->first();
             if ($t) return $t;
         }
         return null;
@@ -313,12 +342,29 @@ class ProjectImporter
         if (isset($d['external_key'])) $prompt->external_key = $d['external_key'];
 
         // Assign a unique version per (task_id, agent_type) to satisfy the unique constraint.
-        // Uses the in-memory tracker so no cross-project DB queries are needed.
+        // When updating an existing prompt, keep its current version.
+        // When creating a new prompt, use the in-memory tracker seeded from DB max.
         $agentType = $prompt->agent_type;
         $versionKey = "{$taskId}:{$agentType}";
-        $nextVersion = ($this->promptVersionTracker[$versionKey] ?? 0) + 1;
-        $prompt->version = $nextVersion;
-        $this->promptVersionTracker[$versionKey] = $nextVersion;
+
+        if (!$created) {
+            // Updating — keep existing version, but track it so later
+            // inserts for the same key start above this version.
+            $this->promptVersionTracker[$versionKey] = max(
+                $this->promptVersionTracker[$versionKey] ?? 0,
+                $prompt->version,
+            );
+        } else {
+            // Creating — seed tracker from DB if we haven't seen this key yet
+            if (!isset($this->promptVersionTracker[$versionKey])) {
+                $this->promptVersionTracker[$versionKey] = (int) TaskPrompt::where('task_id', $taskId)
+                    ->where('agent_type', $agentType)
+                    ->max('version');
+            }
+            $nextVersion = $this->promptVersionTracker[$versionKey] + 1;
+            $prompt->version = $nextVersion;
+            $this->promptVersionTracker[$versionKey] = $nextVersion;
+        }
 
         $prompt->save();
 
@@ -334,6 +380,16 @@ class ProjectImporter
         }
         if (!empty($d['external_key'])) {
             $p = TaskPrompt::where('external_key', $d['external_key'])->first();
+            if ($p) return $p;
+        }
+        // Fallback: match by (task_id, agent_type) so re-imports without
+        // id/external_key update the existing prompt instead of violating
+        // the unique (task_id, agent_type, version) constraint.
+        if (!empty($d['agent_type'])) {
+            $p = TaskPrompt::where('task_id', $taskId)
+                ->where('agent_type', $d['agent_type'])
+                ->orderByDesc('version')
+                ->first();
             if ($p) return $p;
         }
         return null;

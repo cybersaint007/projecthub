@@ -130,6 +130,8 @@ return [
     'create_epic'       => '建立史詩',
     'edit_epic'         => '編輯史詩',
     'update_epic'       => '更新史詩',
+    'delete_epic'       => '刪除史詩',
+    'confirm_delete_epic' => '確定要刪除此史詩嗎？其中所有任務也會一併刪除。管理員可以還原此操作。',
     'no_epics_yet'      => '尚無史詩。',
     'no_epics_kanban'   => '尚無史詩。請新增史詩以使用看板檢視。',
     'milestone_tag'     => '里程碑標籤',
@@ -291,4 +293,8 @@ return [
     'aged_bucket_31_60'       => '31–60 天',
     'aged_bucket_61_90'       => '61–90 天',
     'aged_bucket_over_90'     => '超過 90 天',
+
+    // Bulk actions
+    'bulk_set_agent' => '批次設定代理類型為',
+    'apply' => '套用',
 ];

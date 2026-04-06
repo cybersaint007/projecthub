@@ -130,6 +130,8 @@ return [
     'create_epic'       => 'Create Epic',
     'edit_epic'         => 'Edit Epic',
     'update_epic'       => 'Update Epic',
+    'delete_epic'       => 'Delete Epic',
+    'confirm_delete_epic' => 'Are you sure you want to delete this epic? All tasks within it will also be deleted. This action can be undone by an admin.',
     'no_epics_yet'      => 'No epics yet.',
     'no_epics_kanban'   => 'No epics yet. Add epics to use Kanban view.',
     'milestone_tag'     => 'Milestone Tag',
@@ -291,4 +293,8 @@ return [
     'aged_bucket_31_60'       => '31–60 Days',
     'aged_bucket_61_90'       => '61–90 Days',
     'aged_bucket_over_90'     => 'Over 90 Days',
+
+    // Bulk actions
+    'bulk_set_agent' => 'Set all agents to',
+    'apply' => 'Apply',
 ];
