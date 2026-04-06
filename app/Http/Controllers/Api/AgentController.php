@@ -66,7 +66,7 @@ class AgentController extends Controller
             ->whereNull('tasks.deleted_at')
             ->orderBy('epics.position')
             ->orderBy('tasks.position')
-            ->select('tasks.*');
+            ->select('tasks.*', 'epics.title as epic_title');
 
         if ($request->filled('agent_type')) {
             $query->where('agent', $request->input('agent_type'));
@@ -90,6 +90,7 @@ class AgentController extends Controller
                 'agent' => $task->agent,
                 'priority' => $task->priority,
                 'position' => $task->position,
+                'epic_title' => $task->epic_title,
             ],
         ]);
     }

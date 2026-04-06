@@ -175,7 +175,8 @@ while (true) {
         continue;
     }
 
-    log_msg("Found task #{$task['id']}: {$task['title']} (status: {$task['status']})");
+    $epicPrefix = !empty($task['epic_title']) ? "[{$task['epic_title']}] " : '';
+    log_msg("Found task #{$task['id']}: {$epicPrefix}{$task['title']} (status: {$task['status']})");
 
     // ── Dry-run: show task info without claiming ──────────────────────────────
     if ($config['dry_run']) {
