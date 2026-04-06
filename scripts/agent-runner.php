@@ -88,11 +88,19 @@ if (function_exists('pcntl_async_signals')) {
     log_msg("Warning: pcntl extension not available — graceful shutdown on SIGINT/SIGTERM disabled.");
 }
 
+// ─── Resolve Project Name ─────────────────────────────────────────────────────
+
+$projectInfoUrl = "{$config['api_base']}/api/agent/projects/{$config['project_id']}";
+$projectInfoResp = apiRequest('GET', $projectInfoUrl, $config);
+$projectLabel = $projectInfoResp['code'] === 200 && !empty($projectInfoResp['data']['name'])
+    ? "{$projectInfoResp['data']['name']} (#{$config['project_id']})"
+    : "#{$config['project_id']}";
+
 // ─── Startup Banner ───────────────────────────────────────────────────────────
 
 log_msg("ProjectHub Agent Runner v" . RUNNER_VERSION);
 log_msg("Worker:    {$config['worker_id']}");
-log_msg("Project:   {$config['project_id']}");
+log_msg("Project:   {$projectLabel}");
 log_msg("Epic:      " . ($config['epic_id'] ?? 'all'));
 log_msg("Agent:     {$config['agent_type']}");
 log_msg("Repo:      {$config['repo_path']}");

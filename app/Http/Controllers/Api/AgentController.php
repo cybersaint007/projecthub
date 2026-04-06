@@ -33,6 +33,17 @@ class AgentController extends Controller
     /** Default lease duration in minutes. */
     private const LEASE_DURATION_MINUTES = 60;
 
+    public function projectInfo(Request $request, Project $project): JsonResponse
+    {
+        $this->authorizeProject($request, $project);
+
+        return response()->json([
+            'id' => $project->id,
+            'code' => $project->code,
+            'name' => $project->name,
+        ]);
+    }
+
     public function nextTask(Request $request, Project $project): JsonResponse
     {
         $this->authorizeProject($request, $project);
