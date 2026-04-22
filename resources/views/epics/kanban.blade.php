@@ -9,8 +9,13 @@
                     <a href="{{ route('epics.show', $epic) }}" class="hover:underline">{{ $epic->title }}</a>
                 </p>
             </div>
+            @php $epicUserRole = $epic->project->roleFor(auth()->user()); @endphp
             <div class="flex gap-2">
                 <a href="{{ route('epics.show', $epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50">&larr; {{ __('ui.back_to_epic') }}</a>
+                <a href="{{ route('backlog.epic.export-v3', $epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50 text-gray-700">{{ __('ui.export_epic') }}</a>
+                @if(($epicUserRole === 'owner' || $epicUserRole === 'editor') || Auth::user()->isAdmin())
+                    <a href="{{ route('backlog.epic.import-tasks', $epic) }}" class="px-3 py-2 border text-sm rounded hover:bg-gray-50 text-gray-700">{{ __('ui.import_tasks') }}</a>
+                @endif
                 <a href="{{ route('tasks.create', $epic) }}" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">{{ __('ui.new_task') }}</a>
             </div>
         </div>

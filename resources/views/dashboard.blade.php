@@ -1,6 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('ui.dashboard') }}</h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('ui.dashboard') }}</h2>
+            @if(Auth::user()->isAdmin())
+                <a href="{{ route('backlog.import-v3.global') }}" class="px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700">{{ __('ui.import_project') }}</a>
+            @endif
+        </div>
     </x-slot>
 
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
