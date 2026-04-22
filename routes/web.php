@@ -11,6 +11,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskLogController;
 use App\Http\Controllers\TaskPromptController;
 use App\Http\Controllers\BacklogController;
+use App\Http\Controllers\EpicBacklogController;
 use App\Http\Controllers\AgentDashboardController;
 use App\Http\Controllers\TaskReviewController;
 use App\Http\Controllers\AgentTokenController;
@@ -91,12 +92,19 @@ Route::middleware('auth')->group(function () {
     // Task Reviews
     Route::post('/tasks/{task}/reviews', [TaskReviewController::class, 'store'])->name('reviews.store');
 
-    // Backlog Export/Import (V3 canonical)
+    // Backlog Export/Import (V3 canonical) — project level
     Route::get('/projects/{project}/backlog/export-v3', [BacklogController::class, 'exportV3Json'])->name('backlog.export-v3');
     Route::get('/projects/{project}/backlog/import-v3', [BacklogController::class, 'importV3Form'])->name('backlog.import-v3');
     Route::post('/projects/{project}/backlog/import-v3', [BacklogController::class, 'importV3Apply'])->name('backlog.import-v3.apply');
     Route::get('/import-v3', [BacklogController::class, 'importV3GlobalForm'])->name('backlog.import-v3.global');
     Route::post('/import-v3', [BacklogController::class, 'importV3GlobalApply'])->name('backlog.import-v3.global.apply');
+
+    // Backlog Export/Import (V3 canonical) — epic level
+    Route::get('/epics/{epic}/export-v3', [EpicBacklogController::class, 'exportV3Json'])->name('backlog.epic.export-v3');
+    Route::get('/projects/{project}/epics/import-v3', [EpicBacklogController::class, 'importEpicForm'])->name('backlog.epic.import-v3');
+    Route::post('/projects/{project}/epics/import-v3', [EpicBacklogController::class, 'importEpicApply'])->name('backlog.epic.import-v3.apply');
+    Route::get('/epics/{epic}/import-v3', [EpicBacklogController::class, 'importTasksForm'])->name('backlog.epic.import-tasks');
+    Route::post('/epics/{epic}/import-v3', [EpicBacklogController::class, 'importTasksApply'])->name('backlog.epic.import-tasks.apply');
 
     // Project Files
     Route::get('/projects/{project}/files', [ProjectFileController::class, 'index'])->name('project-files.index');

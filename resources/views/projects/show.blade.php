@@ -23,11 +23,12 @@
     @if(!$project->trashed())
         <div class="bg-white shadow-sm sm:rounded-lg mb-4 px-4 py-3 flex flex-wrap items-center gap-2">
 
-            {{-- 資料群組: 檔案 / 匯出 / 匯入 --}}
+            {{-- 資料群組: 檔案 / 匯出專案 / 匯入專案 / 匯入史詩 --}}
             <a href="{{ route('project-files.index', $project) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700">{{ __('ui.files') }}</a>
-            <a href="{{ route('backlog.export-v3', $project) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700">{{ __('ui.export') }}</a>
+            <a href="{{ route('backlog.export-v3', $project) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700">{{ __('ui.export_project') }}</a>
             @if(($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin())
-                <a href="{{ route('backlog.import-v3', $project) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700">{{ __('ui.import') }}</a>
+                <a href="{{ route('backlog.import-v3', $project) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700">{{ __('ui.import_project') }}</a>
+                <a href="{{ route('backlog.epic.import-v3', $project) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700">{{ __('ui.import_epic') }}</a>
             @endif
 
             @if(($userRole === 'owner' || $userRole === 'editor') || Auth::user()->isAdmin())
