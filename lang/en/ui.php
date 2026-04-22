@@ -33,6 +33,7 @@ return [
 
     // Common labels
     'name'        => 'Name',
+    'created'     => 'Created',
     'title'       => 'Title',
     'description' => 'Description',
     'status'      => 'Status',
@@ -312,4 +313,22 @@ return [
     // Bulk actions
     'bulk_set_agent' => 'Set all agents to',
     'apply' => 'Apply',
+
+    // Agent tokens
+    'agent_tokens'              => 'Agent Tokens',
+    'token_created_notice'      => 'Token created — copy it now. It will not be shown again.',
+    'create_agent_token'        => 'Create Agent Token',
+    'token_name'                => 'Token name',
+    'token_name_placeholder'    => 'e.g. macbook-local, ci-runner',
+    'generate_token'            => 'Generate Token',
+    'active_tokens'             => 'Active Tokens',
+    'no_agent_tokens'           => 'No agent tokens for this project.',
+    'last_used'                 => 'Last used',
+    'expires'                   => 'Expires',
+    'never'                     => 'Never',
+    'expired'                   => 'Expired',
+    'revoke'                    => 'Revoke',
+    'revoke_token_confirm'      => "Revoke token ':name'? This cannot be undone.",
+    'agent_runner_quickstart'   => 'Quick-start: agent-runner.env',
+    'agent_runner_quickstart_desc' => 'Copy to <code class="bg-gray-100 px-1 rounded">scripts/agent-runner.env</code> and fill in your token.',
 ];

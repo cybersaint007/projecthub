@@ -33,6 +33,7 @@ return [
 
     // Common labels
     'name'        => '名稱',
+    'created'     => '建立時間',
     'title'       => '標題',
     'description' => '描述',
     'status'      => '狀態',
@@ -312,4 +313,22 @@ return [
     // Bulk actions
     'bulk_set_agent' => '批次設定代理類型為',
     'apply' => '套用',
+
+    // Agent tokens
+    'agent_tokens'              => '代理人權杖',
+    'token_created_notice'      => '權杖已建立——請立即複製，之後將不再顯示。',
+    'create_agent_token'        => '建立代理人權杖',
+    'token_name'                => '權杖名稱',
+    'token_name_placeholder'    => '例如：macbook-local、ci-runner',
+    'generate_token'            => '產生權杖',
+    'active_tokens'             => '有效權杖',
+    'no_agent_tokens'           => '此專案目前沒有代理人權杖。',
+    'last_used'                 => '最後使用',
+    'expires'                   => '到期時間',
+    'never'                     => '永不到期',
+    'expired'                   => '已過期',
+    'revoke'                    => '撤銷',
+    'revoke_token_confirm'      => "確定要撤銷權杖「:name」嗎？此操作無法復原。",
+    'agent_runner_quickstart'   => '快速開始：agent-runner.env',
+    'agent_runner_quickstart_desc' => '複製到 <code class="bg-gray-100 px-1 rounded">scripts/agent-runner.env</code> 並填入您的權杖。',
 ];
