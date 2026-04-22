@@ -283,22 +283,6 @@ return [
     // Language
     'language' => '語言',
 
-    // AP Reports
-    'nav_ap_reports'          => 'AP 報表',
-    'aged_ap_title'           => '應付帳款帳齡報表',
-    'aged_ap_as_of'           => '截至日期',
-    'aged_ap_run'             => '執行報表',
-    'aged_ap_no_data'         => '目前無未付廠商帳款。',
-    'aged_ap_vendor'          => '廠商',
-    'aged_ap_total'           => '合計',
-    'aged_ap_totals'          => '總計',
-    'aged_ap_note'            => '顯示截至 :date 的未付廠商餘額。',
-    'aged_bucket_current'     => '未到期',
-    'aged_bucket_1_30'        => '1–30 天',
-    'aged_bucket_31_60'       => '31–60 天',
-    'aged_bucket_61_90'       => '61–90 天',
-    'aged_bucket_over_90'     => '超過 90 天',
-
     // Bulk actions
     'bulk_set_agent' => '批次設定代理類型為',
     'apply' => '套用',

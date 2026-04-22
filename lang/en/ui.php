@@ -283,22 +283,6 @@ return [
     // Language
     'language' => 'Language',
 
-    // AP Reports
-    'nav_ap_reports'          => 'AP Reports',
-    'aged_ap_title'           => 'Aged Accounts Payable',
-    'aged_ap_as_of'           => 'As of',
-    'aged_ap_run'             => 'Run Report',
-    'aged_ap_no_data'         => 'No outstanding AP invoices found.',
-    'aged_ap_vendor'          => 'Vendor',
-    'aged_ap_total'           => 'Total',
-    'aged_ap_totals'          => 'Totals',
-    'aged_ap_note'            => 'Showing unpaid vendor balances as of :date.',
-    'aged_bucket_current'     => 'Current',
-    'aged_bucket_1_30'        => '1–30 Days',
-    'aged_bucket_31_60'       => '31–60 Days',
-    'aged_bucket_61_90'       => '61–90 Days',
-    'aged_bucket_over_90'     => 'Over 90 Days',
-
     // Bulk actions
     'bulk_set_agent' => 'Set all agents to',
     'apply' => 'Apply',
