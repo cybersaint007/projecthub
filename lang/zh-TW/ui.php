@@ -55,6 +55,11 @@ return [
     'uploaded_by' => '上傳者',
     'select'      => '請選擇...',
     'epics'       => '功能模組',
+    'task'        => '任務',
+    'project'     => '專案',
+    'epic'        => '功能模組',
+    'refresh'     => '重新整理',
+    'min'         => '分鐘',
 
     // Common back links
     'back_to_projects' => '返回專案列表',
@@ -282,6 +287,27 @@ return [
 
     // Language
     'language' => '語言',
+
+    // Agent Dashboard
+    'agent_dispatch_dashboard'    => '代理人派送儀表板',
+    'active_leases'               => '執行中的租約',
+    'no_active_leases'            => '目前沒有執行中的租約。',
+    'worker_id'                   => '工作者 ID',
+    'agent_type'                  => '代理人類型',
+    'leased_at'                   => '租用時間',
+    'expires_in'                  => '剩餘時間',
+    'recent_completions'          => '近期完成項目',
+    'last_24_hours'               => '最近 24 小時',
+    'no_completions_24h'          => '最近 24 小時內沒有完成項目。',
+    'completed_at'                => '完成時間',
+    'final_status'                => '最終狀態',
+    'log_count'                   => '日誌數量',
+    'recovered_leases'            => '已恢復的租約',
+    'failures_last_24h'           => '失敗項目，最近 24 小時',
+    'no_recovered_leases_24h'     => '最近 24 小時內沒有已恢復的租約。',
+    'expired_at'                  => '過期時間',
+    'recovery_message'            => '恢復訊息',
+    'task_deleted'                => '（已刪除）',
 
     // Bulk actions
     'bulk_set_agent' => '批次設定代理類型為',

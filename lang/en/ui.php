@@ -55,6 +55,11 @@ return [
     'uploaded_by' => 'Uploaded By',
     'select'      => 'Select...',
     'epics'       => 'Epics',
+    'task'        => 'Task',
+    'project'     => 'Project',
+    'epic'        => 'Epic',
+    'refresh'     => 'Refresh',
+    'min'         => 'min',
 
     // Common back links
     'back_to_projects' => 'Back to Projects',
@@ -282,6 +287,27 @@ return [
 
     // Language
     'language' => 'Language',
+
+    // Agent Dashboard
+    'agent_dispatch_dashboard'    => 'Agent Dispatch Dashboard',
+    'active_leases'               => 'Active Leases',
+    'no_active_leases'            => 'No active leases.',
+    'worker_id'                   => 'Worker ID',
+    'agent_type'                  => 'Agent Type',
+    'leased_at'                   => 'Leased At',
+    'expires_in'                  => 'Expires In',
+    'recent_completions'          => 'Recent Completions',
+    'last_24_hours'               => 'last 24 hours',
+    'no_completions_24h'          => 'No completions in the last 24 hours.',
+    'completed_at'                => 'Completed At',
+    'final_status'                => 'Final Status',
+    'log_count'                   => 'Log Count',
+    'recovered_leases'            => 'Recovered Leases',
+    'failures_last_24h'           => 'failures, last 24 hours',
+    'no_recovered_leases_24h'     => 'No recovered leases in the last 24 hours.',
+    'expired_at'                  => 'Expired At',
+    'recovery_message'            => 'Recovery Message',
+    'task_deleted'                => '(deleted)',
 
     // Bulk actions
     'bulk_set_agent' => 'Set all agents to',
