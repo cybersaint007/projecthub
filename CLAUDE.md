@@ -59,6 +59,8 @@ php artisan agent:recover-leases
 
 **i18n**: Locale cascade: query param `?lang=` → cookie (180-day) → GeoIP (MaxMind) → `Accept-Language` header → config default. Supported: `zh-TW`, `en`. Middleware: `DetectLocale`.
 
+**Agent Runner** (`scripts/agent-runner.php`): Standalone CLI script that polls the Agent API and dispatches tasks to the `claude` CLI. Configure via `scripts/agent-runner.env` (copy from `scripts/agent-runner.example.env`). Runs in a loop (default 30s poll); supports `--dry-run` (preview prompt only) and `--once` (single task then exit). Multiple `.env` files can coexist for different projects (e.g. `agent-runner-housetracking.env` → run from that directory).
+
 ## CI/CD
 
 For all CI/CD setup, deployment scripts, GitHub Actions workflows, and GitHub Secrets configuration, follow the guide at `docs/CI_CD_GUIDE.md`. This is the single source of truth for deploy scripts, Actions workflows, secrets setup, and Docker Compose patterns.

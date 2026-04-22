@@ -135,7 +135,7 @@ while (true) {
 
     if ($nextResp['error']) {
         log_msg("ERROR: Network error polling for task: {$nextResp['error']}");
-        sleep($config['poll_interval']);
+        sleep($config['agent_poll_interval']);
         continue;
     }
 
