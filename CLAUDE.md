@@ -8,6 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install dependencies
 composer install && npm install
 
+# Full setup (install, key:generate, migrate, npm install, build)
+composer run setup
+
 # Full dev environment (Laravel serve + queue + logs + Vite, concurrent)
 composer dev
 
@@ -29,31 +32,38 @@ npm run dev
 
 # Recover expired agent leases (returns abandoned tasks to Ready)
 php artisan agent:recover-leases
+
+# Test mail delivery
+php artisan mail:test
 ```
 
 ## Architecture
 
-**Stack**: Laravel 12 (PHP 8.2+), PostgreSQL (`root` schema via `DB_SCHEMA` env), Blade + Alpine.js + Tailwind CSS, Vite. Tests use SQLite in-memory (`phpunit.xml`). Middleware aliases registered in `bootstrap/app.php` (not a Kernel class).
+**Stack**: Laravel 12 (PHP 8.2+), PostgreSQL (`root` schema via `DB_SCHEMA` env), Blade + Alpine.js + Tailwind CSS, Vite. Tests use SQLite in-memory (`phpunit.xml`). Middleware aliases registered in `bootstrap/app.php` (not a Kernel class): `admin`, `force.password.reset`, `agent.token`.
 
 **Data hierarchy**: Project → Epic → Task (all soft-deletable). Users assigned to projects via `project_user` pivot. Admin-only user creation — no self-registration.
 
-**Auth**: Laravel Breeze (login/logout only). `force_password_reset` on `User` triggers `ForcePasswordReset` middleware redirect to password change on first login.
+**Auth**: Laravel Breeze (login/logout only). `force_password_reset` on `User` triggers `ForcePasswordReset` middleware redirect to password change on first login. Authorization uses `ProjectPolicy`.
 
 **Task status flow**: `TODO | Backlog → Ready → InProgress → Review → Done` (also `Blocked`). Transitions enforced in `TaskController`; the Agent API enforces its own FSM in `AgentController` (`TODO/Ready → InProgress`, `InProgress → Review/Done`, `Review → InProgress/Done`).
 
-**Agent types**: `claude_code`, `cursor2`, `deepseek`, `openclaw`, `human`.
+**Agent types**: `claude_code`, `cursor2`, `deepseek`, `openclaw`, `human`. Prompt format types (`structured` or `raw`) are defined in `config/task_prompts.php` alongside the agent type list.
 
 **Task priorities**: Integer constants — `LOW=1`, `MEDIUM=3`, `HIGH=5`.
 
-**Agent API** (`routes/api.php`, prefix `/api/agent`): Bearer-token auth via `AgentTokenAuth` middleware (tokens in `agent_tokens`, project-scoped or null for unrestricted). Six endpoints: `next` (find eligible task), `claim` (acquire 60-min lease), `bundle` (task context + prompt), `logs`, `artifacts`, `status`. Tasks use optimistic locking via lease fields (`leased_by`, `lease_token`, `leased_until`, `claimed_at`) to prevent double-claiming. Lease auto-clears on Review/Done transition. Expired leases recovered by `agent:recover-leases` command.
+**Agent API** (`routes/api.php`, prefix `/api/agent`): Bearer-token auth via `AgentTokenAuth` middleware (tokens in `agent_tokens`, project-scoped or null for unrestricted). Six endpoints: `next` (find eligible task), `claim` (acquire 60-min lease), `bundle` (task context + prompt), `logs`, `artifacts`, `status`. Tasks use optimistic locking via lease fields (`leased_by`, `lease_token`, `leased_until`, `claimed_at`) to prevent double-claiming. Lease auto-clears on Review/Done transition. Expired leases recovered by `agent:recover-leases` command, which also runs on the scheduler every 5 minutes.
 
 **Prompt system**: `TaskPrompt` records versioned per `(task_id, agent_type, version)` unique constraint. `AgentBundleService` resolves prompts by returning the latest version, or generating a default from task fields. All prompts get a "Work Log Report" footer appended.
 
-**Webhooks**: Tasks reaching `Ready` status dispatch `task.ready` webhook events to registered project endpoints.
+**Webhooks**: Tasks reaching `Ready` status dispatch `task.ready` webhook events to registered project endpoints (`WebhookEndpoint` model). Delivery is a queued `DispatchWebhook` job with 3 retries and exponential backoff (60s, 300s, 900s); payloads are signed with HMAC-SHA256.
+
+**Task reviews**: `TaskReview` model stores review records with a `truth_audit` field (structured audit checklist). Created via `TaskReviewController` at `POST /tasks/{task}/reviews`.
+
+**Reordering**: Epics and tasks support drag/drop reordering via sortablejs. Endpoints: `POST /projects/{project}/epics/reorder` and `POST /projects/{project}/tasks/reorder`.
 
 **File storage**: Private files use the `projecthub_private` disk (local, not public). Served through `ProjectFileController` with auth checks.
 
-**Backlog import/export** (V3 JSON): `BacklogReplaceService` soft-deletes existing data and rebuilds in a transaction, saving a `BacklogBackup` snapshot first. Import uses two-pass resolution: first upserts entities (lookup by id, external_key, or code), then validates dependencies with non-fatal warnings. Soft-deleted records found via `withTrashed()` and restored rather than duplicated. Services in `app/Services/ImportV3/` and `app/Services/ExportV3/`.
+**Backlog import/export** (V3 JSON): Works at both project level (`BacklogController`) and epic level (`EpicBacklogController`). `BacklogReplaceService` soft-deletes existing data and rebuilds in a transaction, saving a `BacklogBackup` snapshot first. Import uses two-pass resolution: first upserts entities (lookup by id, external_key, or code), then validates dependencies with non-fatal warnings. Soft-deleted records found via `withTrashed()` and restored rather than duplicated. Services in `app/Services/ImportV3/` and `app/Services/ExportV3/`.
 
 **V3 field mappings** (DB ↔ JSON): `estimate_size` ↔ `estimate`, `artifact_refs` ↔ `artifacts`, `review_metadata` ↔ `review`, `assignee_value` ↔ `assignee`.
 
