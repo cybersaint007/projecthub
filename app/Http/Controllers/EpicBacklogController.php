@@ -60,10 +60,12 @@ class EpicBacklogController extends Controller
         }
 
         // Wrap in project structure so ProjectImporter can handle it
+        $epics = isset($data['epics']) ? $data['epics'] : [$data['epic']];
+
         $wrapped = [
             'schema_version' => '3.0',
             'project'        => ['id' => $project->id, 'name' => $project->name],
-            'epics'          => [$data['epic']],
+            'epics'          => $epics,
         ];
 
         $result = $importer->import($wrapped);
