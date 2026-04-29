@@ -47,7 +47,7 @@ php artisan mail:test
 
 **Task status flow**: `TODO | Backlog → Ready → InProgress → Review → Done` (also `Blocked`). Transitions enforced in `TaskController`; the Agent API enforces its own FSM in `AgentController` (`TODO/Ready → InProgress`, `InProgress → Review/Done`, `Review → InProgress/Done`).
 
-**Agent types**: `claude_code`, `cursor2`, `deepseek`, `openclaw`, `human`. Prompt format types (`structured` or `raw`) are defined in `config/task_prompts.php` alongside the agent type list.
+**Agent types**: `claude_code`, `cursor2`, `deepseek`, `openclaw`, `ollama`, `hermes`, `human` — defined in `Task::AGENTS` (used by the Agent API). `config/task_prompts.php` defines a separate list for prompt validation that may differ; `Task::AGENTS` is authoritative for API filtering. Prompt format types (`structured` or `raw`) are also in `config/task_prompts.php`.
 
 **Task priorities**: Integer constants — `LOW=1`, `MEDIUM=3`, `HIGH=5`.
 
@@ -60,6 +60,14 @@ php artisan mail:test
 **Task reviews**: `TaskReview` model stores review records with a `truth_audit` field (structured audit checklist). Created via `TaskReviewController` at `POST /tasks/{task}/reviews`.
 
 **Reordering**: Epics and tasks support drag/drop reordering via sortablejs. Endpoints: `POST /projects/{project}/epics/reorder` and `POST /projects/{project}/tasks/reorder`.
+
+**Kanban board**: Per-epic kanban view at `GET /epics/{epic}/kanban` — tasks grouped by status column with drag/drop status transitions.
+
+**Bulk agent assignment**: `PATCH /epics/{epic}/bulk-agent` updates the `agent` field on all tasks in an epic at once.
+
+**Agent dashboard** (admin-only): `GET /agent/dashboard` — shows active leases and recent completions (last 24h) across all projects.
+
+**Soft delete cascade**: Deleting a Project soft-deletes all its Epics and Tasks and detaches `project_user` members. Restore cascades back up (members are NOT auto-restored). Same cascade applies when deleting Epics (cascades to Tasks). See `docs/PROJECT_DELETE_RESTORE.md`.
 
 **File storage**: Private files use the `projecthub_private` disk (local, not public). Served through `ProjectFileController` with auth checks.
 
@@ -74,6 +82,8 @@ php artisan mail:test
 ## CI/CD
 
 For all CI/CD setup, deployment scripts, GitHub Actions workflows, and GitHub Secrets configuration, follow the guide at `docs/CI_CD_GUIDE.md`. This is the single source of truth for deploy scripts, Actions workflows, secrets setup, and Docker Compose patterns.
+
+Other docs: `docs/AGENT_API.md` (full API reference), `docs/BACKLOG_EXPORT_IMPORT.md` (V3 JSON schema), `docs/IMPORT_BACKLOG_CLI.md` / `docs/IMPORT_BACKLOG_UI.md` / `docs/IMPORT_MINIMAL_BACKLOG.md` (import guides), `docs/PROJECT_DELETE_RESTORE.md` (cascade delete/restore), `docs/REVIEWER_CHECKLIST.md` (task review checklist), `docs/I18N.md` (adding locales).
 
 ## Key Rules
 

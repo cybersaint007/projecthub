@@ -7,6 +7,8 @@
         <button @click="tab = 'cursor'"    :class="tab === 'cursor'    ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Cursor 2</button>
         <button @click="tab = 'deepseek'"  :class="tab === 'deepseek'  ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Deepseek</button>
         <button @click="tab = 'openclaw'"  :class="tab === 'openclaw'  ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">OpenClaw</button>
+        <button @click="tab = 'ollama'"    :class="tab === 'ollama'    ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Ollama</button>
+        <button @click="tab = 'hermes'"    :class="tab === 'hermes'    ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Hermes</button>
     </div>
 
     {{-- Claude Code --}}
@@ -94,5 +96,44 @@
         @endphp
         <textarea id="openclaw-prompt" readonly rows="16" class="w-full font-mono text-sm border-gray-300 rounded-md bg-gray-50 focus:ring-0">{{ $openclawPrompt }}</textarea>
         <button onclick="navigator.clipboard.writeText(document.getElementById('openclaw-prompt').value).then(() => this.textContent = '{{ __('ui.copied') }}').catch(() => {}); setTimeout(() => this.textContent = '{{ __('ui.copy_to_clipboard') }}', 2000)" class="mt-2 px-4 py-2 bg-gray-800 text-white text-sm rounded hover:bg-gray-900">{{ __('ui.copy_to_clipboard') }}</button>
+    </div>
+
+    {{-- Ollama --}}
+    <div x-show="tab === 'ollama'" x-cloak>
+        @php
+        $ollamaPrompt = "## Task: {$task->title}\n\n";
+        $ollamaPrompt .= "### Background / Context\n";
+        $ollamaPrompt .= ($task->context ?: 'N/A') . "\n\n";
+        $ollamaPrompt .= "### Goal / Instructions\n";
+        $ollamaPrompt .= ($task->instructions ?: 'N/A') . "\n\n";
+        $ollamaPrompt .= "### Acceptance Criteria\n";
+        $ollamaPrompt .= ($task->acceptance_criteria ?: 'N/A') . "\n\n";
+        $ollamaPrompt .= "### Constraints\n";
+        $ollamaPrompt .= "- Keep it MVP. Do not add extra features beyond what is specified.\n";
+        $ollamaPrompt .= "- Follow existing project conventions and patterns.\n";
+        $ollamaPrompt .= "- Verify with: php artisan serve + manual testing.";
+        @endphp
+        <textarea id="ollama-prompt" readonly rows="16" class="w-full font-mono text-sm border-gray-300 rounded-md bg-gray-50 focus:ring-0">{{ $ollamaPrompt }}</textarea>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('ollama-prompt').value).then(() => this.textContent = '{{ __('ui.copied') }}').catch(() => {}); setTimeout(() => this.textContent = '{{ __('ui.copy_to_clipboard') }}', 2000)" class="mt-2 px-4 py-2 bg-gray-800 text-white text-sm rounded hover:bg-gray-900">{{ __('ui.copy_to_clipboard') }}</button>
+    </div>
+
+    {{-- Hermes --}}
+    <div x-show="tab === 'hermes'" x-cloak>
+        @php
+        $hermesPrompt = "### Instruction\n";
+        $hermesPrompt .= "You are a skilled software engineer. Complete the following task precisely as described.\n\n";
+        $hermesPrompt .= "### Task\n";
+        $hermesPrompt .= "{$task->title}\n\n";
+        $hermesPrompt .= "### Context\n";
+        $hermesPrompt .= ($task->context ?: 'N/A') . "\n\n";
+        $hermesPrompt .= "### Steps\n";
+        $hermesPrompt .= ($task->instructions ?: 'N/A') . "\n\n";
+        $hermesPrompt .= "### Acceptance Criteria\n";
+        $hermesPrompt .= ($task->acceptance_criteria ?: 'N/A') . "\n\n";
+        $hermesPrompt .= "### Response\n";
+        $hermesPrompt .= "Implement the task. Keep changes minimal and follow existing project conventions.";
+        @endphp
+        <textarea id="hermes-prompt" readonly rows="16" class="w-full font-mono text-sm border-gray-300 rounded-md bg-gray-50 focus:ring-0">{{ $hermesPrompt }}</textarea>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('hermes-prompt').value).then(() => this.textContent = '{{ __('ui.copied') }}').catch(() => {}); setTimeout(() => this.textContent = '{{ __('ui.copy_to_clipboard') }}', 2000)" class="mt-2 px-4 py-2 bg-gray-800 text-white text-sm rounded hover:bg-gray-900">{{ __('ui.copy_to_clipboard') }}</button>
     </div>
 </div>

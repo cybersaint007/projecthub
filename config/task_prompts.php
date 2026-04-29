@@ -6,6 +6,8 @@ return [
         'cursor_2',
         'deepseek',
         'openclaw',
+        'ollama',
+        'hermes',
         'custom',
     ],
 
