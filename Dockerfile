@@ -3,15 +3,23 @@ FROM trafex/php-nginx:latest
 # Switch to root to install packages
 USER root
 
-# Install PostgreSQL PHP extensions, composer, and Node.js
+# Install PostgreSQL PHP extensions, composer, and Node.js.
+# NOTE: this image ships two PHP runtimes — the CLI is PHP 8.4 (used by the
+# queue worker, scheduler and artisan migrate) while php-fpm runs PHP 8.5
+# (serves the web requests). The PostgreSQL PDO driver must be present for
+# BOTH or one of the two halves breaks, so install pgsql for each version.
 RUN apk add --no-cache \
     php84-pdo_pgsql \
     php84-pgsql \
+    php84-session \
+    php84-ctype \
     php84-tokenizer \
     php84-fileinfo \
     php84-dom \
     php84-xmlwriter \
     php84-xmlreader \
+    php85-pdo_pgsql \
+    php85-pgsql \
     composer \
     nodejs \
     npm

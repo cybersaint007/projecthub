@@ -30,6 +30,9 @@ services:
       - APP_ENV=production
     volumes:
       - app-storage:/var/www/html/storage
+    # Worker container does not serve HTTP; disable the base image's web healthcheck.
+    healthcheck:
+      disable: true
     depends_on:
       - projecthub
 
@@ -49,6 +52,9 @@ services:
       - APP_ENV=production
     volumes:
       - app-storage:/var/www/html/storage
+    # Scheduler container does not serve HTTP; disable the base image's web healthcheck.
+    healthcheck:
+      disable: true
     depends_on:
       - projecthub
 
