@@ -47,10 +47,33 @@ Backup mechanism: a cron job polls GitHub every 5 minutes and triggers `deploy.s
 ├── auto-deploy-cron.sh     # Cron wrapper with lock file
 ├── docker-compose.yml      # Production compose
 ├── Dockerfile
+├── projecthub-nginx.conf   # Container-internal nginx (php-fpm, :18080)
+├── projecthub-host-nginx.conf  # HOST reverse-proxy vhost (TLS, public domain)
 └── .github/
     └── workflows/
         └── ci.yml          # GitHub Actions CI/CD
 ```
+
+## Public Domain / TLS (host reverse proxy)
+
+The container serves plain HTTP on `127.0.0.1:18080` (compose uses
+`network_mode: host`). Public HTTPS is terminated by the **host** nginx, which
+proxies the domain to that port. The vhost is committed at
+`projecthub-host-nginx.conf` — install it and enable TLS with certbot:
+
+```bash
+sudo cp projecthub-host-nginx.conf /etc/nginx/sites-available/projecthub
+sudo ln -sfn /etc/nginx/sites-available/projecthub /etc/nginx/sites-enabled/projecthub
+sudo nginx -t && sudo systemctl reload nginx
+
+# DNS must already point at this host, then:
+sudo certbot --nginx -d projecthub.fincosoft.com \
+    --non-interactive --agree-tos -m imcybersaint@gmail.com --redirect
+```
+
+Set `APP_URL=https://projecthub.fincosoft.com` in `.env`. Laravel already
+trusts the proxy (`trustProxies(at: '*')` in `bootstrap/app.php`), so it honors
+`X-Forwarded-Proto` and generates `https://` URLs.
 
 ## deploy.sh Template
 
