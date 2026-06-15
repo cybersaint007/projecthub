@@ -28,7 +28,7 @@ class EpicController extends Controller
 
         $project->epics()->create($data);
 
-        return redirect()->route('projects.show', $project)->with('status', 'Epic created.');
+        return redirect()->route('projects.show', $project)->with('status', __('ui.flash_epic_created'));
     }
 
     public function show(Request $request, Epic $epic)
@@ -62,7 +62,7 @@ class EpicController extends Controller
 
         $epic->update($data);
 
-        return redirect()->route('epics.show', $epic)->with('status', 'Epic updated.');
+        return redirect()->route('epics.show', $epic)->with('status', __('ui.flash_epic_updated'));
     }
 
     public function destroy(Request $request, Epic $epic)
@@ -74,7 +74,7 @@ class EpicController extends Controller
         $project = $epic->project;
         $epic->delete();
 
-        return redirect()->route('projects.show', $project)->with('status', 'Epic deleted.');
+        return redirect()->route('projects.show', $project)->with('status', __('ui.flash_epic_deleted'));
     }
 
     public function restore(Request $request, $id)
@@ -88,7 +88,7 @@ class EpicController extends Controller
             $epic->tasks()->onlyTrashed()->restore();
             $epic->restore();
 
-            return redirect()->route('projects.show', $epic->project)->with('status', 'Epic restored.');
+            return redirect()->route('projects.show', $epic->project)->with('status', __('ui.flash_epic_restored'));
         });
     }
 
@@ -103,7 +103,7 @@ class EpicController extends Controller
         $updated = $epic->tasks()->update(['agent' => $data['agent']]);
 
         return redirect()->route('epics.show', $epic)
-            ->with('status', "Updated {$updated} tasks to agent: {$data['agent']}.");
+            ->with('status', __('ui.flash_bulk_agent_updated', ['count' => $updated, 'agent' => $data['agent']]));
     }
 
     public function kanban(Request $request, Epic $epic)
@@ -123,7 +123,7 @@ class EpicController extends Controller
         }
 
         if (!$user->projects()->where('projects.id', $project->id)->exists()) {
-            abort(403, 'You are not assigned to this project.');
+            abort(403, __('ui.error_not_assigned_project'));
         }
     }
 }

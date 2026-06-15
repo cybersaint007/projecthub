@@ -52,7 +52,7 @@ class ResetPasswordController extends Controller
 
         if ($status === Password::PASSWORD_RESET) {
             return redirect()->route('login')
-                ->with('status', '密碼已更新，請重新登入。');
+                ->with('status', __('ui.flash_password_reset_done'));
         }
 
         return back()->withErrors(['email' => __($status)]);

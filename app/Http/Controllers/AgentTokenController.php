@@ -37,7 +37,7 @@ class AgentTokenController extends Controller
         ]);
 
         return back()
-            ->with('status', 'Agent token created.')
+            ->with('status', __('ui.flash_agent_token_created'))
             ->with('new_token', $rawToken);
     }
 
@@ -51,6 +51,6 @@ class AgentTokenController extends Controller
 
         $agentToken->delete();
 
-        return back()->with('status', 'Agent token revoked.');
+        return back()->with('status', __('ui.flash_agent_token_revoked'));
     }
 }

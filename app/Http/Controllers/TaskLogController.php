@@ -22,7 +22,7 @@ class TaskLogController extends Controller
             'user_id' => $request->user()?->id,
         ]);
 
-        return redirect(route('tasks.show', $task) . '#logs')->with('status', 'Work log added.');
+        return redirect(route('tasks.show', $task) . '#logs')->with('status', __('ui.flash_worklog_added'));
     }
 
     public function update(Request $request, TaskLog $taskLog)
@@ -35,7 +35,7 @@ class TaskLogController extends Controller
 
         $taskLog->update($data);
 
-        return redirect(route('tasks.show', $taskLog->task) . '#logs')->with('status', 'Work log updated.');
+        return redirect(route('tasks.show', $taskLog->task) . '#logs')->with('status', __('ui.flash_worklog_updated'));
     }
 
     public function destroy(Request $request, TaskLog $taskLog)
@@ -45,7 +45,7 @@ class TaskLogController extends Controller
         $task = $taskLog->task;
         $taskLog->delete();
 
-        return redirect(route('tasks.show', $task) . '#logs')->with('status', 'Work log deleted.');
+        return redirect(route('tasks.show', $task) . '#logs')->with('status', __('ui.flash_worklog_deleted'));
     }
 
     private function authorizeEpic($user, $epic): void
@@ -56,7 +56,7 @@ class TaskLogController extends Controller
 
         $project = $epic->project;
         if (! $user->projects()->where('projects.id', $project->id)->exists()) {
-            abort(403, 'You are not assigned to this project.');
+            abort(403, __('ui.error_not_assigned_project'));
         }
     }
 }

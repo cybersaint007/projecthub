@@ -22,7 +22,7 @@ class TaskPromptController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        return back()->with('status', 'Prompt added.');
+        return back()->with('status', __('ui.flash_prompt_added'));
     }
 
     public function show(Request $request, Task $task, TaskPrompt $task_prompt)
@@ -48,7 +48,7 @@ class TaskPromptController extends Controller
 
         $task_prompt->update($request->validated());
 
-        return redirect()->route('tasks.show', $task)->with('status', 'Prompt updated.');
+        return redirect()->route('tasks.show', $task)->with('status', __('ui.flash_prompt_updated'));
     }
 
     public function duplicate(Request $request, Task $task, TaskPrompt $task_prompt)
@@ -67,7 +67,7 @@ class TaskPromptController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        return back()->with('status', 'Prompt duplicated.');
+        return back()->with('status', __('ui.flash_prompt_duplicated'));
     }
 
     public function destroy(Request $request, Task $task, TaskPrompt $task_prompt)
@@ -77,7 +77,7 @@ class TaskPromptController extends Controller
 
         $task_prompt->delete();
 
-        return back()->with('status', 'Prompt deleted.');
+        return back()->with('status', __('ui.flash_prompt_deleted'));
     }
 
     private function authorizeTask($user, Task $task): void

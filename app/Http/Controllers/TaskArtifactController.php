@@ -22,7 +22,7 @@ class TaskArtifactController extends Controller
 
         $task->artifacts()->create($data);
 
-        return back()->with('status', 'Artifact added.');
+        return back()->with('status', __('ui.flash_artifact_added'));
     }
 
     public function storeFile(Request $request, Task $task)
@@ -60,7 +60,7 @@ class TaskArtifactController extends Controller
             'note' => $request->note ?: $file->getClientOriginalName(),
         ]);
 
-        return back()->with('status', 'File uploaded to task.');
+        return back()->with('status', __('ui.flash_file_uploaded_task'));
     }
 
     public function destroy(Request $request, TaskArtifact $artifact)
@@ -69,7 +69,7 @@ class TaskArtifactController extends Controller
 
         $artifact->delete();
 
-        return back()->with('status', 'Artifact removed.');
+        return back()->with('status', __('ui.flash_artifact_removed'));
     }
 
     private function authorizeTask($user, Task $task): void

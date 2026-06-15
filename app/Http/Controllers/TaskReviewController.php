@@ -45,7 +45,7 @@ class TaskReviewController extends Controller
             $task->update(['status' => 'InProgress']);
         }
 
-        return back()->with('status', 'Review submitted.');
+        return back()->with('status', __('ui.flash_review_submitted'));
     }
 
     private function authorizeTask($user, Task $task): void

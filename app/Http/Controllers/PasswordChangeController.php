@@ -25,6 +25,6 @@ class PasswordChangeController extends Controller
             'force_password_reset' => false,
         ]);
 
-        return redirect()->route('dashboard')->with('status', 'Password changed successfully.');
+        return redirect()->route('dashboard')->with('status', __('ui.flash_password_changed'));
     }
 }

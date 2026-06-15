@@ -46,7 +46,7 @@ class ProjectFileController extends Controller
             'note' => $request->note,
         ]);
 
-        return back()->with('status', 'File uploaded.');
+        return back()->with('status', __('ui.flash_file_uploaded'));
     }
 
     public function download(Request $request, ProjectFile $file)
@@ -65,13 +65,13 @@ class ProjectFileController extends Controller
 
         // Admin can delete all; user can only delete own uploads
         if (!$request->user()->isAdmin() && $file->uploader_user_id !== $request->user()->id) {
-            abort(403, 'You can only delete files you uploaded.');
+            abort(403, __('ui.error_only_delete_own_files'));
         }
 
         Storage::disk('projecthub_private')->delete($file->stored_path);
         $file->delete();
 
-        return back()->with('status', 'File deleted.');
+        return back()->with('status', __('ui.flash_file_deleted'));
     }
 
     private function authorizeProject($user, Project $project): void
@@ -81,7 +81,7 @@ class ProjectFileController extends Controller
         }
 
         if (!$user->projects()->where('projects.id', $project->id)->exists()) {
-            abort(403, 'You are not assigned to this project.');
+            abort(403, __('ui.error_not_assigned_project'));
         }
     }
 }

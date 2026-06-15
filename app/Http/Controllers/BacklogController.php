@@ -43,12 +43,12 @@ class BacklogController extends Controller
 
         $json = $this->extractJson($request);
         if ($json === null) {
-            return back()->withErrors(['import' => 'Provide valid JSON via paste or file upload.']);
+            return back()->withErrors(['import' => __('ui.error_provide_valid_json')]);
         }
 
         $data = json_decode($json, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            return back()->withErrors(['import' => 'Invalid JSON: ' . json_last_error_msg()]);
+            return back()->withErrors(['import' => __('ui.error_invalid_json', ['error' => json_last_error_msg()])]);
         }
 
         $validator = new SchemaValidator();
@@ -75,12 +75,12 @@ class BacklogController extends Controller
     {
         $json = $this->extractJson($request);
         if ($json === null) {
-            return back()->withErrors(['import' => 'Provide valid JSON via paste or file upload.']);
+            return back()->withErrors(['import' => __('ui.error_provide_valid_json')]);
         }
 
         $data = json_decode($json, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            return back()->withErrors(['import' => 'Invalid JSON: ' . json_last_error_msg()]);
+            return back()->withErrors(['import' => __('ui.error_invalid_json', ['error' => json_last_error_msg()])]);
         }
 
         $validator = new SchemaValidator();
@@ -157,7 +157,7 @@ class BacklogController extends Controller
 
         $role = $project->roleFor($user);
         if (!in_array($role, ['owner', 'editor'], true)) {
-            abort(403, 'You do not have permission to manage this project backlog.');
+            abort(403, __('ui.error_no_backlog_permission'));
         }
     }
 }

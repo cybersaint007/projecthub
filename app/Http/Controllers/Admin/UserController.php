@@ -75,7 +75,7 @@ class UserController extends Controller
             'is_admin' => $data['is_admin'] ?? false,
         ]);
 
-        return redirect()->route('admin.users.show', $user)->with('status', 'User updated.');
+        return redirect()->route('admin.users.show', $user)->with('status', __('ui.flash_user_updated'));
     }
 
     public function resetPassword(User $user)
@@ -108,7 +108,7 @@ class UserController extends Controller
         }
         $user->projects()->sync($sync);
 
-        return redirect()->route('admin.users.show', $user)->with('status', 'Project assignments updated.');
+        return redirect()->route('admin.users.show', $user)->with('status', __('ui.flash_project_assignments_updated'));
     }
 
     private function generateStrongPassword(int $length = 18): string

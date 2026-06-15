@@ -48,6 +48,6 @@ class ForgotPasswordController extends Controller
             ]);
         }
 
-        return back()->with('status', '如果該 Email 存在，我們已寄出重設密碼連結。');
+        return back()->with('status', __('ui.flash_password_reset_link_sent'));
     }
 }

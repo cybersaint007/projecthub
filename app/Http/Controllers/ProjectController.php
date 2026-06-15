@@ -52,7 +52,7 @@ class ProjectController extends Controller
 
         Project::create($data);
 
-        return redirect()->route('projects.index')->with('status', 'Project created.');
+        return redirect()->route('projects.index')->with('status', __('ui.flash_project_created'));
     }
 
     public function show(Request $request, $id)
@@ -88,7 +88,7 @@ class ProjectController extends Controller
         $this->authorizeProject($user, $project);
         $role = $project->roleFor($user);
         if ($role !== Project::ROLE_OWNER && !$user->isAdmin()) {
-            abort(403, 'Only the project owner can manage access.');
+            abort(403, __('ui.error_only_owner_manage_access'));
         }
         $project->load(['owner', 'accessUsers']);
         $userIdsOnProject = $project->accessUsers->pluck('id')->when($project->owner_id, fn ($ids) => $ids->push($project->owner_id))->unique()->values();
@@ -102,17 +102,17 @@ class ProjectController extends Controller
         $user = $request->user();
         $this->authorizeProject($user, $project);
         if ($project->roleFor($user) !== Project::ROLE_OWNER && !$user->isAdmin()) {
-            abort(403, 'Only the project owner can manage access.');
+            abort(403, __('ui.error_only_owner_manage_access'));
         }
         $data = $request->validate([
             'user_id' => 'required|exists:users,id',
             'role' => 'required|in:editor,viewer',
         ]);
         if ($project->owner_id && (int) $project->owner_id === (int) $data['user_id']) {
-            return redirect()->route('projects.access', $project)->with('error', 'That user is already the project owner.');
+            return redirect()->route('projects.access', $project)->with('error', __('ui.error_user_already_owner'));
         }
         $project->accessUsers()->syncWithoutDetaching([$data['user_id'] => ['role' => $data['role']]]);
-        return redirect()->route('projects.access', $project)->with('status', 'User added to project.');
+        return redirect()->route('projects.access', $project)->with('status', __('ui.flash_user_added'));
     }
 
     public function updateAccessUser(Request $request, Project $project, User $user)
@@ -120,14 +120,14 @@ class ProjectController extends Controller
         $authUser = $request->user();
         $this->authorizeProject($authUser, $project);
         if ($project->roleFor($authUser) !== Project::ROLE_OWNER && !$authUser->isAdmin()) {
-            abort(403, 'Only the project owner can manage access.');
+            abort(403, __('ui.error_only_owner_manage_access'));
         }
         if ($project->owner_id && (int) $project->owner_id === (int) $user->id) {
-            return redirect()->route('projects.access', $project)->with('error', 'Change the project owner first to change that user\'s role.');
+            return redirect()->route('projects.access', $project)->with('error', __('ui.error_change_owner_first'));
         }
         $data = $request->validate(['role' => 'required|in:editor,viewer']);
         $project->accessUsers()->updateExistingPivot($user->id, ['role' => $data['role']]);
-        return redirect()->route('projects.access', $project)->with('status', 'Role updated.');
+        return redirect()->route('projects.access', $project)->with('status', __('ui.flash_role_updated'));
     }
 
     public function removeAccessUser(Request $request, Project $project, User $user)
@@ -135,13 +135,13 @@ class ProjectController extends Controller
         $authUser = $request->user();
         $this->authorizeProject($authUser, $project);
         if ($project->roleFor($authUser) !== Project::ROLE_OWNER && !$authUser->isAdmin()) {
-            abort(403, 'Only the project owner can manage access.');
+            abort(403, __('ui.error_only_owner_manage_access'));
         }
         if ($project->owner_id && (int) $project->owner_id === (int) $user->id) {
-            return redirect()->route('projects.access', $project)->with('error', 'Set a different project owner before removing the current owner.');
+            return redirect()->route('projects.access', $project)->with('error', __('ui.error_set_owner_before_remove'));
         }
         $project->accessUsers()->detach($user->id);
-        return redirect()->route('projects.access', $project)->with('status', 'User removed from project.');
+        return redirect()->route('projects.access', $project)->with('status', __('ui.flash_user_removed'));
     }
 
     public function updateOwner(Request $request, Project $project)
@@ -149,12 +149,12 @@ class ProjectController extends Controller
         $authUser = $request->user();
         $this->authorizeProject($authUser, $project);
         if ($project->roleFor($authUser) !== Project::ROLE_OWNER && !$authUser->isAdmin()) {
-            abort(403, 'Only the project owner can manage access.');
+            abort(403, __('ui.error_only_owner_manage_access'));
         }
         $data = $request->validate(['owner_id' => 'required|exists:users,id']);
         $project->update(['owner_id' => $data['owner_id']]);
         $project->accessUsers()->syncWithoutDetaching([$data['owner_id'] => ['role' => Project::ROLE_VIEWER]]);
-        return redirect()->route('projects.access', $project)->with('status', 'Project owner updated.');
+        return redirect()->route('projects.access', $project)->with('status', __('ui.flash_owner_updated'));
     }
 
     public function edit(Request $request, Project $project)
@@ -175,7 +175,7 @@ class ProjectController extends Controller
 
         $project->update($data);
 
-        return redirect()->route('projects.show', $project)->with('status', 'Project updated.');
+        return redirect()->route('projects.show', $project)->with('status', __('ui.flash_project_updated'));
     }
 
     public function destroy(Request $request, Project $project)
@@ -199,7 +199,7 @@ class ProjectController extends Controller
             // Soft delete the project
             $project->delete();
 
-            return redirect()->route('projects.index')->with('status', 'Project deleted.');
+            return redirect()->route('projects.index')->with('status', __('ui.flash_project_deleted'));
         });
     }
 
@@ -227,7 +227,7 @@ class ProjectController extends Controller
             // Restore the project
             $project->restore();
 
-            return redirect()->route('projects.show', $project)->with('status', 'Project restored.');
+            return redirect()->route('projects.show', $project)->with('status', __('ui.flash_project_restored'));
         });
     }
 
@@ -334,7 +334,7 @@ class ProjectController extends Controller
         }
 
         if ($project->trashed()) {
-            abort(403, 'You cannot view deleted projects.');
+            abort(403, __('ui.error_cannot_view_deleted'));
         }
 
         $hasAccess = $project->visibility === Project::VISIBILITY_PUBLIC
@@ -342,7 +342,7 @@ class ProjectController extends Controller
             || $project->accessUsers()->where('users.id', $user->id)->exists();
 
         if (!$hasAccess) {
-            abort(403, 'You do not have access to this project.');
+            abort(403, __('ui.error_no_project_access'));
         }
     }
 }

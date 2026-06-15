@@ -39,7 +39,7 @@ class TaskController extends Controller
 
         $epic->tasks()->create($data);
 
-        return redirect()->route('epics.show', $epic)->with('status', 'Task created.');
+        return redirect()->route('epics.show', $epic)->with('status', __('ui.flash_task_created'));
     }
 
     public function show(Request $request, Task $task)
@@ -89,7 +89,7 @@ class TaskController extends Controller
             $this->dispatchReadyWebhooks($task);
         }
 
-        return redirect()->route('tasks.show', $task)->with('status', 'Task updated.');
+        return redirect()->route('tasks.show', $task)->with('status', __('ui.flash_task_updated'));
     }
 
     public function updateStatus(Request $request, Task $task)
@@ -107,7 +107,7 @@ class TaskController extends Controller
             $this->dispatchReadyWebhooks($task);
         }
 
-        return back()->with('status', 'Task status updated.');
+        return back()->with('status', __('ui.flash_task_status_updated'));
     }
 
     public function updateDescription(Request $request, Task $task)
@@ -120,7 +120,7 @@ class TaskController extends Controller
 
         $task->update($data);
 
-        return back()->with('status', 'Description updated.');
+        return back()->with('status', __('ui.flash_description_updated'));
     }
 
     public function destroy(Request $request, Task $task)
@@ -132,7 +132,7 @@ class TaskController extends Controller
         $epic = $task->epic;
         $task->delete();
 
-        return redirect()->route('epics.show', $epic)->with('status', 'Task deleted.');
+        return redirect()->route('epics.show', $epic)->with('status', __('ui.flash_task_deleted'));
     }
 
     public function restore(Request $request, $id)
@@ -144,7 +144,7 @@ class TaskController extends Controller
         $task = Task::onlyTrashed()->findOrFail($id);
         $task->restore();
 
-        return redirect()->route('epics.show', $task->epic)->with('status', 'Task restored.');
+        return redirect()->route('epics.show', $task->epic)->with('status', __('ui.flash_task_restored'));
     }
 
     private function dispatchReadyWebhooks(Task $task): void
@@ -175,7 +175,7 @@ class TaskController extends Controller
 
         $project = $epic->project;
         if (!$user->projects()->where('projects.id', $project->id)->exists()) {
-            abort(403, 'You are not assigned to this project.');
+            abort(403, __('ui.error_not_assigned_project'));
         }
     }
 }

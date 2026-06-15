@@ -36,7 +36,7 @@ class WebhookEndpointController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        return back()->with('status', 'Webhook endpoint added.');
+        return back()->with('status', __('ui.flash_webhook_added'));
     }
 
     public function destroy(Request $request, Project $project, WebhookEndpoint $webhook)
@@ -49,6 +49,6 @@ class WebhookEndpointController extends Controller
 
         $webhook->delete();
 
-        return back()->with('status', 'Webhook endpoint removed.');
+        return back()->with('status', __('ui.flash_webhook_removed'));
     }
 }
