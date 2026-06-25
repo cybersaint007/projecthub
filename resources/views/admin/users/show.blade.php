@@ -16,6 +16,13 @@
                     @csrf
                     <button type="submit" class="px-3 py-2 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600">{{ __('ui.reset_password') }}</button>
                 </form>
+                @if($user->id !== auth()->id())
+                    <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('{{ __('ui.confirm_delete_user', ['name' => $user->name]) }}')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700">{{ __('ui.delete_user') }}</button>
+                    </form>
+                @endif
             </div>
         </div>
     </x-slot>

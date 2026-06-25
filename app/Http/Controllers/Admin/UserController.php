@@ -6,13 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::withTrashed()
+            ->orderBy('deleted_at')
+            ->orderBy('name')
+            ->get();
 
         return view('admin.users.index', compact('users'));
     }
@@ -65,7 +67,7 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
             'is_admin' => 'boolean',
         ]);
 
@@ -76,6 +78,33 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('admin.users.show', $user)->with('status', __('ui.flash_user_updated'));
+    }
+
+    public function destroy(Request $request, User $user)
+    {
+        if ($user->id === $request->user()->id) {
+            return redirect()->route('admin.users.index')
+                ->with('error', __('ui.error_cannot_delete_self'));
+        }
+
+        if ($user->is_admin && User::where('is_admin', true)->count() <= 1) {
+            return redirect()->route('admin.users.index')
+                ->with('error', __('ui.error_cannot_delete_last_admin'));
+        }
+
+        $user->delete();
+
+        return redirect()->route('admin.users.index')
+            ->with('status', __('ui.flash_user_deleted'));
+    }
+
+    public function restore(string $id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+
+        return redirect()->route('admin.users.index')
+            ->with('status', __('ui.flash_user_restored'));
     }
 
     public function resetPassword(User $user)
