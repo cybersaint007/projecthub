@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\AgentDashboardController;
+use App\Http\Controllers\AgentTokenController;
+use App\Http\Controllers\BacklogController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EpicBacklogController;
 use App\Http\Controllers\EpicController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\ProjectController;
@@ -10,11 +14,7 @@ use App\Http\Controllers\TaskArtifactController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskLogController;
 use App\Http\Controllers\TaskPromptController;
-use App\Http\Controllers\BacklogController;
-use App\Http\Controllers\EpicBacklogController;
-use App\Http\Controllers\AgentDashboardController;
 use App\Http\Controllers\TaskReviewController;
-use App\Http\Controllers\AgentTokenController;
 use App\Http\Controllers\WebhookEndpointController;
 use Illuminate\Support\Facades\Route;
 
@@ -113,7 +113,8 @@ Route::middleware('auth')->group(function () {
 
     // Admin routes
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::resource('users', AdminUserController::class)->except(['destroy']);
+        Route::resource('users', AdminUserController::class);
+        Route::post('/users/{id}/restore', [AdminUserController::class, 'restore'])->name('users.restore');
         Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
         Route::post('/users/{user}/sync-projects', [AdminUserController::class, 'syncProjects'])->name('users.sync-projects');
     });
