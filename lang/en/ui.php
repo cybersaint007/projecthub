@@ -396,4 +396,5 @@ return [
     'error_cannot_delete_last_admin'    => 'You cannot delete the last remaining admin.',
     'error_provide_valid_json'          => 'Provide valid JSON via paste or file upload.',
     'error_invalid_json'                => 'Invalid JSON: :error',
+    'error_import_failed'               => 'Import failed and no changes were saved: :error',
 ];

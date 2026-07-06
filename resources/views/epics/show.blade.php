@@ -53,7 +53,7 @@
                             <label class="text-sm text-gray-500">{{ __('ui.bulk_set_agent') }}:</label>
                             <select name="agent" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                                 @foreach(\App\Models\Task::AGENTS as $a)
-                                    <option value="{{ $a }}">{{ $a }}</option>
+                                    <option value="{{ $a }}">{{ \App\Support\AgentType::label($a) }}</option>
                                 @endforeach
                             </select>
                             <button type="submit" class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ __('ui.apply') }}</button>
@@ -116,7 +116,7 @@
                                         @endphp
                                         <span class="px-2 py-1 text-xs rounded {{ $statusColors[$task->status] ?? '' }}">{{ $task->status }}</span>
                                     </td>
-                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $task->agent }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">{{ \App\Support\AgentType::label($task->agent) }}</td>
                                     <td class="px-4 py-3">
                                         @php
                                             $priorityColors = [1 => 'text-gray-500', 3 => 'text-yellow-600', 5 => 'text-red-600'];

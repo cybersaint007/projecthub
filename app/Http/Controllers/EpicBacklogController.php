@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\RunsBacklogImport;
 use App\Models\Epic;
 use App\Models\Project;
 use App\Services\ExportV3\EpicExporter;
@@ -12,6 +13,8 @@ use Illuminate\Support\Str;
 
 class EpicBacklogController extends Controller
 {
+    use RunsBacklogImport;
+
     // -------------------------------------------------------------------------
     // Export — single epic with its tasks
     // -------------------------------------------------------------------------
@@ -20,9 +23,9 @@ class EpicBacklogController extends Controller
     {
         $this->authorizeProject($request->user(), $epic->project);
 
-        $data     = $exporter->export($epic);
-        $slug     = Str::slug($epic->title) ?: 'epic';
-        $filename = 'epic_' . $slug . '_v3_' . now()->format('Ymd_Hi') . '.json';
+        $data = $exporter->export($epic);
+        $slug = Str::slug($epic->title) ?: 'epic';
+        $filename = 'epic_'.$slug.'_v3_'.now()->format('Ymd_Hi').'.json';
 
         return response(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
@@ -54,8 +57,8 @@ class EpicBacklogController extends Controller
             return back()->withErrors(['import' => __('ui.error_invalid_json', ['error' => json_last_error_msg()])]);
         }
 
-        $validator = new EpicSchemaValidator();
-        if (!$validator->validate($data)) {
+        $validator = new EpicSchemaValidator;
+        if (! $validator->validate($data)) {
             return back()->withErrors(['import' => implode(' | ', $validator->errors())]);
         }
 
@@ -64,11 +67,14 @@ class EpicBacklogController extends Controller
 
         $wrapped = [
             'schema_version' => '3.0',
-            'project'        => ['id' => $project->id, 'name' => $project->name],
-            'epics'          => $epics,
+            'project' => ['id' => $project->id, 'name' => $project->name],
+            'epics' => $epics,
         ];
 
-        $result = $importer->import($wrapped);
+        [$result, $error] = $this->runImport($importer, $wrapped);
+        if ($error !== null) {
+            return back()->withErrors(['import' => $error]);
+        }
 
         return redirect()->route('projects.show', $project)
             ->with('status', sprintf(
@@ -103,8 +109,8 @@ class EpicBacklogController extends Controller
             return back()->withErrors(['import' => __('ui.error_invalid_json', ['error' => json_last_error_msg()])]);
         }
 
-        $validator = new EpicSchemaValidator();
-        if (!$validator->validate($data)) {
+        $validator = new EpicSchemaValidator;
+        if (! $validator->validate($data)) {
             return back()->withErrors(['import' => implode(' | ', $validator->errors())]);
         }
 
@@ -113,11 +119,14 @@ class EpicBacklogController extends Controller
 
         $wrapped = [
             'schema_version' => '3.0',
-            'project'        => ['id' => $epic->project_id, 'name' => $epic->project->name],
-            'epics'          => [$epicData],
+            'project' => ['id' => $epic->project_id, 'name' => $epic->project->name],
+            'epics' => [$epicData],
         ];
 
-        $result = $importer->import($wrapped);
+        [$result, $error] = $this->runImport($importer, $wrapped);
+        if ($error !== null) {
+            return back()->withErrors(['import' => $error]);
+        }
 
         return redirect()->route('epics.show', $epic)
             ->with('status', sprintf(
@@ -134,6 +143,7 @@ class EpicBacklogController extends Controller
     {
         if ($request->hasFile('file')) {
             $request->validate(['file' => 'file|max:2048|mimes:json,txt']);
+
             return $request->file('file')->get();
         }
 
@@ -151,7 +161,7 @@ class EpicBacklogController extends Controller
         }
 
         $role = $project->roleFor($user);
-        if (!in_array($role, ['owner', 'editor'], true)) {
+        if (! in_array($role, ['owner', 'editor'], true)) {
             abort(403, __('ui.error_no_backlog_permission'));
         }
     }

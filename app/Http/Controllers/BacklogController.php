@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\RunsBacklogImport;
 use App\Models\Project;
 use App\Services\ExportV3\ProjectExporter;
 use App\Services\ImportV3\ProjectImporter;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 
 class BacklogController extends Controller
 {
+    use RunsBacklogImport;
+
     // -------------------------------------------------------------------------
     // V3 Export
     // -------------------------------------------------------------------------
@@ -18,8 +21,8 @@ class BacklogController extends Controller
     {
         $this->authorizeProject($request->user(), $project);
 
-        $data     = $exporter->export($project);
-        $filename = ($project->code ?: 'project') . '_v3_' . now()->format('Ymd_Hi') . '.json';
+        $data = $exporter->export($project);
+        $filename = ($project->code ?: 'project').'_v3_'.now()->format('Ymd_Hi').'.json';
 
         return response(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
@@ -51,12 +54,15 @@ class BacklogController extends Controller
             return back()->withErrors(['import' => __('ui.error_invalid_json', ['error' => json_last_error_msg()])]);
         }
 
-        $validator = new SchemaValidator();
-        if (!$validator->validate($data)) {
+        $validator = new SchemaValidator;
+        if (! $validator->validate($data)) {
             return back()->withErrors(['import' => implode(' | ', $validator->errors())]);
         }
 
-        $result = $importer->import($data);
+        [$result, $error] = $this->runImport($importer, $data);
+        if ($error !== null) {
+            return back()->withErrors(['import' => $error]);
+        }
 
         return redirect()->route('projects.show', $project)
             ->with('status', $this->buildSummary($result));
@@ -83,23 +89,26 @@ class BacklogController extends Controller
             return back()->withErrors(['import' => __('ui.error_invalid_json', ['error' => json_last_error_msg()])]);
         }
 
-        $validator = new SchemaValidator();
-        if (!$validator->validate($data)) {
+        $validator = new SchemaValidator;
+        if (! $validator->validate($data)) {
             return back()->withErrors(['import' => implode(' | ', $validator->errors())]);
         }
 
-        $result = $importer->import($data);
+        [$result, $error] = $this->runImport($importer, $data);
+        if ($error !== null) {
+            return back()->withErrors(['import' => $error]);
+        }
 
         // Locate the project that was created/updated to redirect to it
         $projectData = $data['project'];
         $project = null;
-        if (!empty($projectData['external_key'])) {
+        if (! empty($projectData['external_key'])) {
             $project = Project::where('external_key', $projectData['external_key'])->first();
         }
-        if (!$project && !empty($projectData['code'])) {
+        if (! $project && ! empty($projectData['code'])) {
             $project = Project::where('code', $projectData['code'])->first();
         }
-        if (!$project && !empty($projectData['name'])) {
+        if (! $project && ! empty($projectData['name'])) {
             $project = Project::where('name', $projectData['name'])->first();
         }
 
@@ -126,8 +135,8 @@ class BacklogController extends Controller
             $result->promptsCreated, $result->promptsUpdated,
         );
 
-        if (!empty($result->dependencyWarnings)) {
-            $summary .= ' Warnings: ' . implode('; ', $result->dependencyWarnings);
+        if (! empty($result->dependencyWarnings)) {
+            $summary .= ' Warnings: '.implode('; ', $result->dependencyWarnings);
         }
 
         return $summary;
@@ -139,6 +148,7 @@ class BacklogController extends Controller
             $request->validate([
                 'file' => 'file|max:2048|mimes:json,txt',
             ]);
+
             return $request->file('file')->get();
         }
 
@@ -156,7 +166,7 @@ class BacklogController extends Controller
         }
 
         $role = $project->roleFor($user);
-        if (!in_array($role, ['owner', 'editor'], true)) {
+        if (! in_array($role, ['owner', 'editor'], true)) {
             abort(403, __('ui.error_no_backlog_permission'));
         }
     }
