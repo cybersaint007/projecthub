@@ -51,9 +51,15 @@ for i in $(seq 1 $HEALTH_RETRIES); do
     sleep $HEALTH_INTERVAL
 done
 
-# 5. Database migration (runs inside container — reads .env natively)
+# 5. Database migration and cache refresh (runs inside container — reads .env natively)
 log "5. Running database migration..."
 docker exec "$CONTAINER_NAME" php artisan migrate --force 2>&1 | tee -a "$LOG_FILE"
+
+# Clear stale view/config/route caches compiled in the old image, then recompile
+# against the now-mounted storage volume so permissions are correct.
+log "5b. Refreshing application cache..."
+docker exec "$CONTAINER_NAME" php artisan optimize:clear 2>&1 | tee -a "$LOG_FILE"
+docker exec "$CONTAINER_NAME" php artisan optimize 2>&1 | tee -a "$LOG_FILE"
 
 # 6. Update GeoIP database (reads license key from host .env)
 log "6. Updating GeoIP database..."
