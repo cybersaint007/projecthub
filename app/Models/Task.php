@@ -48,7 +48,7 @@ class Task extends Model
     }
 
     public const STATUSES = ['TODO', 'Backlog', 'Ready', 'InProgress', 'Review', 'Done'];
-    public const AGENTS = ['claude_code', 'cursor2', 'deepseek', 'openclaw', 'ollama', 'hermes', 'human'];
+    public const AGENTS = ['claude_code', 'codex', 'cursor2', 'deepseek', 'openclaw', 'ollama', 'hermes', 'human'];
     /** @var int Priority 1=low, 3=medium (default), 5=high */
     public const PRIORITY_LOW = 1;
     public const PRIORITY_MEDIUM = 3;

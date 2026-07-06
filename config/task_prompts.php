@@ -3,6 +3,7 @@
 return [
     'agent_types' => [
         'claude_code',
+        'codex',
         'cursor_2',
         'deepseek',
         'openclaw',

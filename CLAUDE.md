@@ -47,7 +47,7 @@ php artisan mail:test
 
 **Task status flow**: `TODO | Backlog → Ready → InProgress → Review → Done` (also `Blocked`). Transitions enforced in `TaskController`; the Agent API enforces its own FSM in `AgentController` (`TODO/Ready → InProgress`, `InProgress → Review/Done`, `Review → InProgress/Done`).
 
-**Agent types**: `claude_code`, `cursor2`, `deepseek`, `openclaw`, `ollama`, `hermes`, `human` — defined in `Task::AGENTS` (used by the Agent API). `config/task_prompts.php` defines a separate list for prompt validation that may differ; `Task::AGENTS` is authoritative for API filtering. Prompt format types (`structured` or `raw`) are also in `config/task_prompts.php`.
+**Agent types**: `claude_code`, `codex`, `cursor2`, `deepseek`, `openclaw`, `ollama`, `hermes`, `human` — defined in `Task::AGENTS` (used by the Agent API). `config/task_prompts.php` defines a separate list for prompt validation that may differ; `Task::AGENTS` is authoritative for API filtering. Prompt format types (`structured` or `raw`) are also in `config/task_prompts.php`.
 
 **Task priorities**: Integer constants — `LOW=1`, `MEDIUM=3`, `HIGH=5`.
 
