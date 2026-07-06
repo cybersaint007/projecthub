@@ -4,11 +4,36 @@
 
     <div class="flex flex-wrap gap-2 mb-4">
         <button @click="tab = 'claude'"    :class="tab === 'claude'    ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Claude Code</button>
+        <button @click="tab = 'codex'"     :class="tab === 'codex'     ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Codex</button>
         <button @click="tab = 'cursor'"    :class="tab === 'cursor'    ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Cursor 2</button>
         <button @click="tab = 'deepseek'"  :class="tab === 'deepseek'  ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Deepseek</button>
         <button @click="tab = 'openclaw'"  :class="tab === 'openclaw'  ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">OpenClaw</button>
         <button @click="tab = 'ollama'"    :class="tab === 'ollama'    ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Ollama</button>
         <button @click="tab = 'hermes'"    :class="tab === 'hermes'    ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1.5 text-sm rounded">Hermes</button>
+    </div>
+
+
+    {{-- Codex --}}
+    <div x-show="tab === 'codex'" x-cloak>
+        @php
+        $codexPrompt = "## Task: {$task->title}\n\n";
+        $codexPrompt .= "### Background / Context\n";
+        $codexPrompt .= ($task->context ?: 'N/A') . "\n\n";
+        $codexPrompt .= "### Goal / Instructions\n";
+        $codexPrompt .= ($task->instructions ?: 'N/A') . "\n\n";
+        $codexPrompt .= "### Acceptance Criteria\n";
+        $codexPrompt .= ($task->acceptance_criteria ?: 'N/A') . "\n\n";
+        $codexPrompt .= "### Constraints\n";
+        $codexPrompt .= "- Read the existing code before editing and follow local conventions.\n";
+        $codexPrompt .= "- Keep the scope tight and avoid unrelated refactors.\n";
+        $codexPrompt .= "- Verify changes with targeted tests or manual checks before finishing.\n\n";
+        $codexPrompt .= "### Deliverables\n";
+        $codexPrompt .= "- Implement the requested change in the relevant files only\n";
+        $codexPrompt .= "- Note any migrations, config changes, or follow-up work required\n";
+        $codexPrompt .= "- Report the verification steps and results";
+        @endphp
+        <textarea id="codex-prompt" readonly rows="16" class="w-full font-mono text-sm border-gray-300 rounded-md bg-gray-50 focus:ring-0">{{ $codexPrompt }}</textarea>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('codex-prompt').value).then(() => this.textContent = '{{ __('ui.copied') }}').catch(() => {}); setTimeout(() => this.textContent = '{{ __('ui.copy_to_clipboard') }}', 2000)" class="mt-2 px-4 py-2 bg-gray-800 text-white text-sm rounded hover:bg-gray-900">{{ __('ui.copy_to_clipboard') }}</button>
     </div>
 
     {{-- Claude Code --}}
