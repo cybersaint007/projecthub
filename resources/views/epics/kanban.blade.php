@@ -56,7 +56,7 @@
                                     $priorityLabels = \App\Models\Task::priorityOptions();
                                 @endphp
                                 <span class="text-xs px-1.5 py-0.5 rounded {{ $priorityColors[$task->priority] ?? 'bg-gray-100 text-gray-600' }}">{{ $priorityLabels[$task->priority] ?? 'Medium' }}</span>
-                                <span class="text-xs text-gray-400">{{ $task->agent }}</span>
+                                <span class="text-xs text-gray-400">{{ \App\Support\AgentType::label($task->agent) }}</span>
                             </div>
                             {{-- Status change buttons --}}
                             <div class="mt-2 flex gap-1">

@@ -65,9 +65,9 @@ class AgentApiTest extends TestCase
     public function test_next_task_filters_by_agent_type(): void
     {
         Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'agent' => 'human', 'position' => 10]);
-        $t2 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'agent' => 'claude_code', 'position' => 20]);
+        $t2 = Task::factory()->create(['epic_id' => $this->epic->id, 'status' => 'Ready', 'agent' => 'codex', 'position' => 20]);
 
-        $response = $this->getJson('/api/agent/projects/' . $this->project->id . '/tasks/next?agent_type=claude_code', $this->headers());
+        $response = $this->getJson('/api/agent/projects/' . $this->project->id . '/tasks/next?agent_type=codex', $this->headers());
 
         $response->assertOk();
         $response->assertJsonPath('task.id', $t2->id);

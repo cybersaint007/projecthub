@@ -21,15 +21,15 @@ class ProjectImporterTest extends TestCase
 
     private function importer(): ProjectImporter
     {
-        return new ProjectImporter();
+        return new ProjectImporter;
     }
 
     private function minimal(): array
     {
         return [
             'schema_version' => '3.0',
-            'project'        => ['name' => 'Test Project'],
-            'epics'          => [],
+            'project' => ['name' => 'Test Project'],
+            'epics' => [],
         ];
     }
 
@@ -39,53 +39,53 @@ class ProjectImporterTest extends TestCase
             'schema_version' => '3.0',
             'project' => [
                 'external_key' => 'proj-ext-1',
-                'code'         => 'FULL',
-                'name'         => $projectName,
-                'description'  => 'A full project',
-                'visibility'   => 'private',
-                'status'       => 'active',
-                'tags'         => ['web', 'api'],
+                'code' => 'FULL',
+                'name' => $projectName,
+                'description' => 'A full project',
+                'visibility' => 'private',
+                'status' => 'active',
+                'tags' => ['web', 'api'],
             ],
             'epics' => [
                 [
                     'external_key' => 'epic-ext-1',
-                    'title'        => 'Epic One',
-                    'description'  => 'First epic',
+                    'title' => 'Epic One',
+                    'description' => 'First epic',
                     'milestone_tag' => 'v1.0',
-                    'status'       => 'active',
-                    'priority'     => 2,
-                    'tags'         => ['backend'],
-                    'goals'        => ['ship MVP'],
+                    'status' => 'active',
+                    'priority' => 2,
+                    'tags' => ['backend'],
+                    'goals' => ['ship MVP'],
                     'tasks' => [
                         [
-                            'external_key'        => 'task-ext-1',
-                            'title'               => 'Task One',
-                            'description'         => 'First task',
-                            'status'              => 'TODO',
-                            'stage'               => 'ready',
-                            'priority'            => 'high',
-                            'execution_mode'      => 'automated',
-                            'estimate'            => 'M',
-                            'tags'                => ['api'],
-                            'context'             => 'ctx',
-                            'instructions'        => 'do the thing',
+                            'external_key' => 'task-ext-1',
+                            'title' => 'Task One',
+                            'description' => 'First task',
+                            'status' => 'TODO',
+                            'stage' => 'ready',
+                            'priority' => 'high',
+                            'execution_mode' => 'automated',
+                            'estimate' => 'M',
+                            'tags' => ['api'],
+                            'context' => 'ctx',
+                            'instructions' => 'do the thing',
                             'acceptance_criteria' => 'it works',
-                            'custom_fields'       => ['team' => 'backend'],
+                            'custom_fields' => ['team' => 'backend'],
                             'prompts' => [
                                 [
                                     'external_key' => 'prompt-ext-1',
-                                    'agent_type'   => 'claude_code',
-                                    'format_type'  => 'structured',
-                                    'title'        => 'Impl prompt',
-                                    'purpose'      => 'implementation',
-                                    'content'      => 'Implement this feature.',
-                                    'version'      => 1,
+                                    'agent_type' => 'claude_code',
+                                    'format_type' => 'structured',
+                                    'title' => 'Impl prompt',
+                                    'purpose' => 'implementation',
+                                    'content' => 'Implement this feature.',
+                                    'version' => 1,
                                 ],
                             ],
                         ],
                         [
                             'external_key' => 'task-ext-2',
-                            'title'        => 'Task Two',
+                            'title' => 'Task Two',
                             'dependencies' => ['task-ext-1'],
                         ],
                     ],
@@ -116,7 +116,7 @@ class ProjectImporterTest extends TestCase
     public function test_create_new_project_without_ids(): void
     {
         $payload = $this->fullPayload();
-        $result  = $this->importer()->import($payload);
+        $result = $this->importer()->import($payload);
 
         $this->assertTrue($result->projectCreated);
         $this->assertEquals(1, $result->epicsCreated);
@@ -200,7 +200,7 @@ class ProjectImporterTest extends TestCase
             'schema_version' => '3.0',
             'project' => [
                 'external_key' => 'proj-ext-1',
-                'name'         => 'Updated via external_key',
+                'name' => 'Updated via external_key',
             ],
             'epics' => [],
         ];
@@ -219,10 +219,10 @@ class ProjectImporterTest extends TestCase
         $payload2 = [
             'schema_version' => '3.0',
             'project' => ['external_key' => 'proj-ext-1', 'name' => 'Full Project'],
-            'epics'   => [
+            'epics' => [
                 [
                     'external_key' => 'epic-ext-1',
-                    'title'        => 'Epic Renamed',
+                    'title' => 'Epic Renamed',
                 ],
             ],
         ];
@@ -245,7 +245,7 @@ class ProjectImporterTest extends TestCase
                 'tasks' => [
                     [
                         'external_key' => 'task-a',
-                        'title'        => 'Task A',
+                        'title' => 'Task A',
                         'dependencies' => ['task-nonexistent'],
                     ],
                 ],
@@ -277,13 +277,15 @@ class ProjectImporterTest extends TestCase
     public function test_transaction_rolls_back_on_failure(): void
     {
         // Subclass that throws on second epic
-        $importer = new class extends ProjectImporter {
+        $importer = new class extends ProjectImporter
+        {
             protected function upsertEpic(array $d, int $projectId): array
             {
                 static $count = 0;
                 if (++$count > 1) {
                     throw new \RuntimeException('Simulated failure on second epic');
                 }
+
                 return parent::upsertEpic($d, $projectId);
             }
         };
@@ -323,9 +325,29 @@ class ProjectImporterTest extends TestCase
         $this->importer()->import($payload);
 
         $tasks = Task::orderBy('id')->get();
-        $this->assertEquals(Task::PRIORITY_LOW,    $tasks[0]->priority);
+        $this->assertEquals(Task::PRIORITY_LOW, $tasks[0]->priority);
         $this->assertEquals(Task::PRIORITY_MEDIUM, $tasks[1]->priority);
-        $this->assertEquals(Task::PRIORITY_HIGH,   $tasks[2]->priority);
+        $this->assertEquals(Task::PRIORITY_HIGH, $tasks[2]->priority);
+    }
+
+    public function test_object_agent_is_flattened_to_type_string(): void
+    {
+        $payload = $this->minimal();
+        $payload['epics'] = [
+            ['title' => 'E', 'tasks' => [
+                ['title' => 'obj',    'agent' => ['type' => 'claude_code', 'lease' => null]],
+                ['title' => 'scalar', 'agent' => 'cursor2'],
+                ['title' => 'empty',  'agent' => []],
+            ]],
+        ];
+
+        $this->importer()->import($payload);
+
+        $tasks = Task::orderBy('id')->get();
+        $this->assertSame('claude_code', $tasks[0]->agent);
+        $this->assertSame('cursor2', $tasks[1]->agent);
+        // Typeless object → column default ('human'), never a NOT NULL violation.
+        $this->assertSame('human', $tasks[2]->agent);
     }
 
     public function test_prompt_default_version_is_one(): void
@@ -371,7 +393,7 @@ class ProjectImporterTest extends TestCase
     public function test_import_summary_counts_are_accurate(): void
     {
         $payload = $this->fullPayload();
-        $result  = $this->importer()->import($payload);
+        $result = $this->importer()->import($payload);
 
         $this->assertEquals(1, $result->epicsCreated);
         $this->assertEquals(0, $result->epicsUpdated);

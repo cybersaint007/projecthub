@@ -115,7 +115,7 @@ The JSON is validated for:
 - Each epic must have a `title`
 - Each task must have a `title`
 - Task `status` must be valid (TODO, Backlog, Ready, InProgress, Review, Done)
-- Task `agent` must be valid (claude_code, cursor2, deepseek, openclaw, human)
+- Task `agent` must be valid (claude_code, codex, cursor2, deepseek, openclaw, ollama, hermes, human)
 - Task `priority` must be 1, 3, or 5
 
 ### Round-Trip Guarantee

@@ -31,7 +31,7 @@ Find the next eligible task for execution.
 
 **Query Parameters:**
 - `worker_id` (optional) - Identifier for the worker
-- `agent_type` (optional) - Filter by agent type: `claude_code`, `cursor2`, `deepseek`, `openclaw`, `human`
+- `agent_type` (optional) - Filter by agent type: `claude_code`, `codex`, `cursor2`, `deepseek`, `openclaw`, `ollama`, `hermes`, `human`
 
 **Eligibility:**
 - Status must be `TODO` or `Ready`

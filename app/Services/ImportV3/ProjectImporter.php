@@ -12,13 +12,19 @@ use Illuminate\Support\Facades\DB;
 class ProjectImporter
 {
     // Counters reset each import run
-    private int $epicsCreated   = 0;
-    private int $epicsUpdated   = 0;
-    private int $tasksCreated   = 0;
-    private int $tasksUpdated   = 0;
+    private int $epicsCreated = 0;
+
+    private int $epicsUpdated = 0;
+
+    private int $tasksCreated = 0;
+
+    private int $tasksUpdated = 0;
+
     private int $promptsCreated = 0;
+
     private int $promptsUpdated = 0;
-    private array $depWarnings  = [];
+
+    private array $depWarnings = [];
 
     // external_key => task DB id, built during task pass
     private array $taskKeyMap = [];
@@ -62,16 +68,16 @@ class ProjectImporter
         });
 
         return new ImportResult(
-            projectCreated:     $projectCreated,
-            projectUpdated:     $projectUpdated,
-            epicsCreated:       $this->epicsCreated,
-            epicsUpdated:       $this->epicsUpdated,
-            tasksCreated:       $this->tasksCreated,
-            tasksUpdated:       $this->tasksUpdated,
-            promptsCreated:     $this->promptsCreated,
-            promptsUpdated:     $this->promptsUpdated,
+            projectCreated: $projectCreated,
+            projectUpdated: $projectUpdated,
+            epicsCreated: $this->epicsCreated,
+            epicsUpdated: $this->epicsUpdated,
+            tasksCreated: $this->tasksCreated,
+            tasksUpdated: $this->tasksUpdated,
+            promptsCreated: $this->promptsCreated,
+            promptsUpdated: $this->promptsUpdated,
             dependencyWarnings: $this->depWarnings,
-            elapsedSeconds:     round(microtime(true) - $start, 4),
+            elapsedSeconds: round(microtime(true) - $start, 4),
         );
     }
 
@@ -86,18 +92,32 @@ class ProjectImporter
     {
         $project = $this->findProject($d);
         $created = $project === null;
-        $project ??= new Project();
+        $project ??= new Project;
 
         // Core fillable fields
-        if (isset($d['name']))        $project->name        = $d['name'];
-        if (isset($d['description'])) $project->description = $d['description'];
-        if (isset($d['code']))        $project->code        = $d['code'];
-        if (isset($d['visibility']))  $project->visibility  = $d['visibility'];
+        if (isset($d['name'])) {
+            $project->name = $d['name'];
+        }
+        if (isset($d['description'])) {
+            $project->description = $d['description'];
+        }
+        if (isset($d['code'])) {
+            $project->code = $d['code'];
+        }
+        if (isset($d['visibility'])) {
+            $project->visibility = $d['visibility'];
+        }
 
         // V3 fields (not in $fillable — direct assignment)
-        if (isset($d['external_key'])) $project->external_key = $d['external_key'];
-        if (isset($d['status']))       $project->status       = $d['status'];
-        if (isset($d['tags']))         $project->tags         = $this->encodeJson($d['tags']);
+        if (isset($d['external_key'])) {
+            $project->external_key = $d['external_key'];
+        }
+        if (isset($d['status'])) {
+            $project->status = $d['status'];
+        }
+        if (isset($d['tags'])) {
+            $project->tags = $this->encodeJson($d['tags']);
+        }
 
         // Resolve owner
         if (isset($d['owner_email'])) {
@@ -116,24 +136,32 @@ class ProjectImporter
 
         $project->save();
 
-        $updated = !$created;
+        $updated = ! $created;
+
         return [$project, $created, $updated];
     }
 
     private function findProject(array $d): ?Project
     {
-        if (!empty($d['id'])) {
+        if (! empty($d['id'])) {
             $p = Project::withTrashed()->find((int) $d['id']);
-            if ($p) return $p;
+            if ($p) {
+                return $p;
+            }
         }
-        if (!empty($d['external_key'])) {
+        if (! empty($d['external_key'])) {
             $p = Project::withTrashed()->where('external_key', $d['external_key'])->first();
-            if ($p) return $p;
+            if ($p) {
+                return $p;
+            }
         }
-        if (!empty($d['code'])) {
+        if (! empty($d['code'])) {
             $p = Project::withTrashed()->where('code', $d['code'])->first();
-            if ($p) return $p;
+            if ($p) {
+                return $p;
+            }
         }
+
         return null;
     }
 
@@ -146,24 +174,42 @@ class ProjectImporter
      */
     protected function upsertEpic(array $d, int $projectId): array
     {
-        $epic    = $this->findEpic($d, $projectId);
+        $epic = $this->findEpic($d, $projectId);
         $created = $epic === null;
-        $epic  ??= new Epic();
+        $epic ??= new Epic;
 
         $epic->project_id = $projectId;
 
         // Core fillable fields
-        if (isset($d['title']))        $epic->title        = $d['title'];
-        if (isset($d['description']))  $epic->description  = $d['description'];
-        if (isset($d['milestone_tag'])) $epic->milestone_tag = $d['milestone_tag'];
-        if (isset($d['position']))     $epic->position     = (int) $d['position'];
+        if (isset($d['title'])) {
+            $epic->title = $d['title'];
+        }
+        if (isset($d['description'])) {
+            $epic->description = $d['description'];
+        }
+        if (isset($d['milestone_tag'])) {
+            $epic->milestone_tag = $d['milestone_tag'];
+        }
+        if (isset($d['position'])) {
+            $epic->position = (int) $d['position'];
+        }
 
         // V3 fields
-        if (isset($d['external_key'])) $epic->external_key = $d['external_key'];
-        if (isset($d['status']))       $epic->status       = $d['status'];
-        if (isset($d['priority']))     $epic->priority     = (int) $d['priority'];
-        if (isset($d['tags']))         $epic->tags         = $this->encodeJson($d['tags']);
-        if (isset($d['goals']))        $epic->goals        = $this->encodeJson($d['goals']);
+        if (isset($d['external_key'])) {
+            $epic->external_key = $d['external_key'];
+        }
+        if (isset($d['status'])) {
+            $epic->status = $d['status'];
+        }
+        if (isset($d['priority'])) {
+            $epic->priority = (int) $d['priority'];
+        }
+        if (isset($d['tags'])) {
+            $epic->tags = $this->encodeJson($d['tags']);
+        }
+        if (isset($d['goals'])) {
+            $epic->goals = $this->encodeJson($d['goals']);
+        }
 
         if (isset($d['owner_email'])) {
             $user = $this->resolveUser($d['owner_email']);
@@ -182,24 +228,32 @@ class ProjectImporter
         $epic->save();
 
         $created ? $this->epicsCreated++ : $this->epicsUpdated++;
+
         return [$epic, $created];
     }
 
     private function findEpic(array $d, int $projectId): ?Epic
     {
-        if (!empty($d['id'])) {
+        if (! empty($d['id'])) {
             $e = Epic::withTrashed()->where('id', (int) $d['id'])->where('project_id', $projectId)->first();
-            if ($e) return $e;
+            if ($e) {
+                return $e;
+            }
         }
-        if (!empty($d['external_key'])) {
+        if (! empty($d['external_key'])) {
             $e = Epic::withTrashed()->where('external_key', $d['external_key'])->first();
-            if ($e) return $e;
+            if ($e) {
+                return $e;
+            }
         }
         // Fallback: match by title within the same project
-        if (!empty($d['title'])) {
+        if (! empty($d['title'])) {
             $e = Epic::withTrashed()->where('project_id', $projectId)->where('title', $d['title'])->first();
-            if ($e) return $e;
+            if ($e) {
+                return $e;
+            }
         }
+
         return null;
     }
 
@@ -212,57 +266,97 @@ class ProjectImporter
      */
     protected function upsertTask(array $d, int $epicId): array
     {
-        $task    = $this->findTask($d, $epicId);
+        $task = $this->findTask($d, $epicId);
         $created = $task === null;
-        $task  ??= new Task();
+        $task ??= new Task;
 
         $task->epic_id = $epicId;
 
         // Core fillable fields
-        if (isset($d['title']))               $task->title               = $d['title'];
-        if (isset($d['description']))         $task->description         = $d['description'];
-        if (isset($d['status']))              $task->status              = $d['status'];
-        if (isset($d['position']))            $task->position            = (int) $d['position'];
-        if (isset($d['context']))             $task->context             = $d['context'];
-        if (isset($d['instructions']))        $task->instructions        = $d['instructions'];
-        if (isset($d['acceptance_criteria'])) $task->acceptance_criteria = is_array($d['acceptance_criteria'])
-            ? implode("\n", $d['acceptance_criteria'])
-            : $d['acceptance_criteria'];
-        if (isset($d['tags']))                $task->tags                = $d['tags']; // cast: array
-        if (isset($d['priority']))            $task->priority            = $this->normalizePriority($d['priority']);
+        if (isset($d['title'])) {
+            $task->title = $d['title'];
+        }
+        if (isset($d['description'])) {
+            $task->description = $d['description'];
+        }
+        if (isset($d['status'])) {
+            $task->status = $d['status'];
+        }
+        if (isset($d['position'])) {
+            $task->position = (int) $d['position'];
+        }
+        if (isset($d['context'])) {
+            $task->context = $d['context'];
+        }
+        if (isset($d['instructions'])) {
+            $task->instructions = $d['instructions'];
+        }
+        if (isset($d['acceptance_criteria'])) {
+            $task->acceptance_criteria = is_array($d['acceptance_criteria'])
+                ? implode("\n", $d['acceptance_criteria'])
+                : $d['acceptance_criteria'];
+        }
+        if (isset($d['tags'])) {
+            $task->tags = $d['tags'];
+        } // cast: array
+        if (isset($d['priority'])) {
+            $task->priority = $this->normalizePriority($d['priority']);
+        }
 
         // V3 fields
-        if (isset($d['external_key']))   $task->external_key   = $d['external_key'];
-        if (isset($d['agent']))          $task->agent          = $d['agent'];
-        if (isset($d['stage']))          $task->stage          = $d['stage'];
-        if (isset($d['execution_mode'])) $task->execution_mode = $d['execution_mode'];
+        if (isset($d['external_key'])) {
+            $task->external_key = $d['external_key'];
+        }
+        if (isset($d['agent'])) {
+            // Skip when the value carries no resolvable type (e.g. an empty or
+            // typeless object): the column is NOT NULL with a 'human' default,
+            // so leave it to the default on create / keep the existing value.
+            $agent = $this->normalizeAgent($d['agent']);
+            if ($agent !== null) {
+                $task->agent = $agent;
+            }
+        }
+        if (isset($d['stage'])) {
+            $task->stage = $d['stage'];
+        }
+        if (isset($d['execution_mode'])) {
+            $task->execution_mode = $d['execution_mode'];
+        }
         if (isset($d['estimate'])) {
             $estimate = $d['estimate'];
             if (is_array($estimate)) {
-                $task->estimate_size  = $estimate['size'] ?? null;
+                $task->estimate_size = $estimate['size'] ?? null;
                 $task->estimate_hours = isset($estimate['hours']) ? (float) $estimate['hours'] : null;
             } else {
                 $task->estimate_size = $estimate;
             }
         }
-        if (isset($d['estimate_hours'])) $task->estimate_hours = (float) $d['estimate_hours'];
-        if (isset($d['custom_fields']))  $task->custom_fields  = $this->encodeJson($d['custom_fields']);
-        if (isset($d['artifacts']))      $task->artifact_refs  = $this->encodeJson($d['artifacts']);
-        if (isset($d['review']))         $task->review_metadata = $this->encodeJson($d['review']);
+        if (isset($d['estimate_hours'])) {
+            $task->estimate_hours = (float) $d['estimate_hours'];
+        }
+        if (isset($d['custom_fields'])) {
+            $task->custom_fields = $this->encodeJson($d['custom_fields']);
+        }
+        if (isset($d['artifacts'])) {
+            $task->artifact_refs = $this->encodeJson($d['artifacts']);
+        }
+        if (isset($d['review'])) {
+            $task->review_metadata = $this->encodeJson($d['review']);
+        }
 
         // Assignee — string or array (future multi-agent support).
         // Arrays are JSON-encoded into the assignee_value string column.
         if (isset($d['assignee'])) {
-            $assignee     = $d['assignee'];
+            $assignee = $d['assignee'];
             $assigneeType = $d['assignee_type'] ?? null;
             $task->assignee_value = is_array($assignee) ? json_encode($assignee) : $assignee;
-            $task->assignee_type  = $assigneeType;
+            $task->assignee_type = $assigneeType;
 
             // Only attempt user resolution for a single string value
-            if (is_string($assignee) && (!$assigneeType || $assigneeType === 'human')) {
+            if (is_string($assignee) && (! $assigneeType || $assigneeType === 'human')) {
                 $user = $this->resolveUser($assignee);
                 if ($user) {
-                    $task->assignee_id   = $user->id;
+                    $task->assignee_id = $user->id;
                     $task->assignee_type = 'human';
                 }
             }
@@ -279,14 +373,14 @@ class ProjectImporter
         }
 
         // Track for second-pass dependency validation
-        if (!empty($d['external_key']) && (!empty($d['dependencies']) || !empty($d['blocking']))) {
-            if (!isset($this->taskDepsMap[$d['external_key']])) {
+        if (! empty($d['external_key']) && (! empty($d['dependencies']) || ! empty($d['blocking']))) {
+            if (! isset($this->taskDepsMap[$d['external_key']])) {
                 $this->taskDepsMap[$d['external_key']] = ['deps' => [], 'blocking' => []];
             }
-            if (!empty($d['dependencies'])) {
+            if (! empty($d['dependencies'])) {
                 $this->taskDepsMap[$d['external_key']]['deps'] = (array) $d['dependencies'];
             }
-            if (!empty($d['blocking'])) {
+            if (! empty($d['blocking'])) {
                 $this->taskDepsMap[$d['external_key']]['blocking'] = (array) $d['blocking'];
             }
         }
@@ -299,24 +393,32 @@ class ProjectImporter
         $task->save();
 
         $created ? $this->tasksCreated++ : $this->tasksUpdated++;
+
         return [$task, $created];
     }
 
     private function findTask(array $d, int $epicId): ?Task
     {
-        if (!empty($d['id'])) {
+        if (! empty($d['id'])) {
             $t = Task::withTrashed()->where('id', (int) $d['id'])->where('epic_id', $epicId)->first();
-            if ($t) return $t;
+            if ($t) {
+                return $t;
+            }
         }
-        if (!empty($d['external_key'])) {
+        if (! empty($d['external_key'])) {
             $t = Task::withTrashed()->where('external_key', $d['external_key'])->first();
-            if ($t) return $t;
+            if ($t) {
+                return $t;
+            }
         }
         // Fallback: match by title within the same epic
-        if (!empty($d['title'])) {
+        if (! empty($d['title'])) {
             $t = Task::withTrashed()->where('epic_id', $epicId)->where('title', $d['title'])->first();
-            if ($t) return $t;
+            if ($t) {
+                return $t;
+            }
         }
+
         return null;
     }
 
@@ -326,20 +428,32 @@ class ProjectImporter
 
     protected function upsertPrompt(array $d, int $taskId): array
     {
-        $prompt  = $this->findPrompt($d, $taskId);
+        $prompt = $this->findPrompt($d, $taskId);
         $created = $prompt === null;
-        $prompt ??= new TaskPrompt();
+        $prompt ??= new TaskPrompt;
 
         $prompt->task_id = $taskId;
 
-        if (isset($d['agent_type']))  $prompt->agent_type  = $d['agent_type'];
-        if (isset($d['format_type'])) $prompt->format_type = $d['format_type'];
-        if (isset($d['title']))       $prompt->title       = $d['title'];
-        if (isset($d['content']))     $prompt->content     = $d['content'];
-        if (isset($d['purpose']))     $prompt->purpose     = $d['purpose'];
+        if (isset($d['agent_type'])) {
+            $prompt->agent_type = $d['agent_type'];
+        }
+        if (isset($d['format_type'])) {
+            $prompt->format_type = $d['format_type'];
+        }
+        if (isset($d['title'])) {
+            $prompt->title = $d['title'];
+        }
+        if (isset($d['content'])) {
+            $prompt->content = $d['content'];
+        }
+        if (isset($d['purpose'])) {
+            $prompt->purpose = $d['purpose'];
+        }
 
         // V3 field not in $fillable
-        if (isset($d['external_key'])) $prompt->external_key = $d['external_key'];
+        if (isset($d['external_key'])) {
+            $prompt->external_key = $d['external_key'];
+        }
 
         // Assign a unique version per (task_id, agent_type) to satisfy the unique constraint.
         // When updating an existing prompt, keep its current version.
@@ -347,7 +461,7 @@ class ProjectImporter
         $agentType = $prompt->agent_type;
         $versionKey = "{$taskId}:{$agentType}";
 
-        if (!$created) {
+        if (! $created) {
             // Updating — keep existing version, but track it so later
             // inserts for the same key start above this version.
             $this->promptVersionTracker[$versionKey] = max(
@@ -356,7 +470,7 @@ class ProjectImporter
             );
         } else {
             // Creating — seed tracker from DB if we haven't seen this key yet
-            if (!isset($this->promptVersionTracker[$versionKey])) {
+            if (! isset($this->promptVersionTracker[$versionKey])) {
                 $this->promptVersionTracker[$versionKey] = (int) TaskPrompt::where('task_id', $taskId)
                     ->where('agent_type', $agentType)
                     ->max('version');
@@ -369,29 +483,37 @@ class ProjectImporter
         $prompt->save();
 
         $created ? $this->promptsCreated++ : $this->promptsUpdated++;
+
         return [$prompt, $created];
     }
 
     private function findPrompt(array $d, int $taskId): ?TaskPrompt
     {
-        if (!empty($d['id'])) {
+        if (! empty($d['id'])) {
             $p = TaskPrompt::where('id', (int) $d['id'])->where('task_id', $taskId)->first();
-            if ($p) return $p;
+            if ($p) {
+                return $p;
+            }
         }
-        if (!empty($d['external_key'])) {
+        if (! empty($d['external_key'])) {
             $p = TaskPrompt::where('external_key', $d['external_key'])->first();
-            if ($p) return $p;
+            if ($p) {
+                return $p;
+            }
         }
         // Fallback: match by (task_id, agent_type) so re-imports without
         // id/external_key update the existing prompt instead of violating
         // the unique (task_id, agent_type, version) constraint.
-        if (!empty($d['agent_type'])) {
+        if (! empty($d['agent_type'])) {
             $p = TaskPrompt::where('task_id', $taskId)
                 ->where('agent_type', $d['agent_type'])
                 ->orderByDesc('version')
                 ->first();
-            if ($p) return $p;
+            if ($p) {
+                return $p;
+            }
         }
+
         return null;
     }
 
@@ -403,12 +525,12 @@ class ProjectImporter
     {
         foreach ($this->taskDepsMap as $ownerKey => $refs) {
             foreach ($refs['deps'] as $depKey) {
-                if (!isset($this->taskKeyMap[$depKey])) {
+                if (! isset($this->taskKeyMap[$depKey])) {
                     $this->depWarnings[] = "task '{$ownerKey}': dependency external_key '{$depKey}' not found in import";
                 }
             }
             foreach ($refs['blocking'] as $blockKey) {
-                if (!isset($this->taskKeyMap[$blockKey])) {
+                if (! isset($this->taskKeyMap[$blockKey])) {
                     $this->depWarnings[] = "task '{$ownerKey}': blocking external_key '{$blockKey}' not found in import";
                 }
             }
@@ -424,15 +546,30 @@ class ProjectImporter
         return User::where('email', $email)->first();
     }
 
+    /**
+     * The `agent` column is a scalar agent-type string, but some export
+     * sources emit it as an object (e.g. {"type":"claude_code","lease":null}).
+     * Flatten that to the type string; pass scalars through unchanged.
+     */
+    private function normalizeAgent(mixed $val): ?string
+    {
+        if (is_array($val)) {
+            return $val['type'] ?? null;
+        }
+
+        return $val === null ? null : (string) $val;
+    }
+
     private function normalizePriority(mixed $val): int
     {
         if (is_string($val)) {
             return match (strtolower(trim($val))) {
-                'low'    => Task::PRIORITY_LOW,
-                'high'   => Task::PRIORITY_HIGH,
-                default  => Task::PRIORITY_MEDIUM,
+                'low' => Task::PRIORITY_LOW,
+                'high' => Task::PRIORITY_HIGH,
+                default => Task::PRIORITY_MEDIUM,
             };
         }
+
         return (int) $val ?: Task::PRIORITY_MEDIUM;
     }
 
@@ -441,21 +578,24 @@ class ProjectImporter
      */
     private function encodeJson(mixed $value): ?string
     {
-        if ($value === null) return null;
+        if ($value === null) {
+            return null;
+        }
+
         return is_array($value) ? json_encode($value) : $value;
     }
 
     private function reset(): void
     {
-        $this->epicsCreated   = 0;
-        $this->epicsUpdated   = 0;
-        $this->tasksCreated   = 0;
-        $this->tasksUpdated   = 0;
+        $this->epicsCreated = 0;
+        $this->epicsUpdated = 0;
+        $this->tasksCreated = 0;
+        $this->tasksUpdated = 0;
         $this->promptsCreated = 0;
         $this->promptsUpdated = 0;
-        $this->depWarnings    = [];
-        $this->taskKeyMap     = [];
-        $this->taskDepsMap    = [];
+        $this->depWarnings = [];
+        $this->taskKeyMap = [];
+        $this->taskDepsMap = [];
         $this->promptVersionTracker = [];
     }
 }

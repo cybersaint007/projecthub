@@ -396,4 +396,5 @@ return [
     'error_cannot_delete_last_admin'    => '您無法刪除最後一位管理員。',
     'error_provide_valid_json'          => '請以貼上或上傳檔案的方式提供有效的 JSON。',
     'error_invalid_json'                => '無效的 JSON：:error',
+    'error_import_failed'               => '匯入失敗，未儲存任何變更：:error',
 ];

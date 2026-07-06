@@ -31,7 +31,7 @@
                     <x-input-label for="agent" :value="__('ui.agent')" />
                     <select id="agent" name="agent" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         @foreach(\App\Models\Task::AGENTS as $a)
-                            <option value="{{ $a }}" {{ old('agent', $task->agent) === $a ? 'selected' : '' }}>{{ $a }}</option>
+                            <option value="{{ $a }}" {{ old('agent', $task->agent) === $a ? 'selected' : '' }}>{{ \App\Support\AgentType::label($a) }}</option>
                         @endforeach
                     </select>
                 </div>
