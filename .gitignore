@@ -21,3 +21,4 @@ yarn-error.log
 /.cursor
 scripts/agent-runner.env
 scripts/agent-runner-*.env
+.DS_Store
