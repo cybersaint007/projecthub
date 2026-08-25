@@ -6,5 +6,7 @@ storage/framework/sessions/*
 storage/framework/views/*
 bootstrap/cache/*
 *.sh
+# ...except the container entrypoint, which the Dockerfile copies explicitly.
+!docker/entrypoint.sh
 docker-compose*.yml
 .dockerignore

@@ -49,7 +49,17 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions \
 # Cache config, routes, and views for production
 RUN php artisan optimize
 
+# The entrypoint re-caches config from the bind-mounted .env on start, so a
+# credential change only needs a restart rather than a rebuild.
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod 755 /usr/local/bin/entrypoint.sh
+
 # Switch back to non-root user
 USER nobody
 
 EXPOSE 8080
+
+# CMD is repeated from the base image because declaring ENTRYPOINT here resets
+# the inherited CMD to null.
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

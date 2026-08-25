@@ -10,6 +10,7 @@ services:
       - APP_ENV=production
     volumes:
       - app-storage:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
@@ -30,6 +31,7 @@ services:
       - APP_ENV=production
     volumes:
       - app-storage:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
     # Worker container does not serve HTTP; disable the base image's web healthcheck.
     healthcheck:
       disable: true
@@ -52,6 +54,7 @@ services:
       - APP_ENV=production
     volumes:
       - app-storage:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
     # Scheduler container does not serve HTTP; disable the base image's web healthcheck.
     healthcheck:
       disable: true
